@@ -10,5 +10,13 @@
   "browser_action": {
     "default_popup": "popup.html",
     "default_title": "Zen Tab"
+  },
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+Z"
+      },
+      "description": "Open Zen Tab"
+    }
   }
 }
