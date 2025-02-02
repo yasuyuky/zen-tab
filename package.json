@@ -1,0 +1,21 @@
+{
+  "name": "zen-tab",
+  "version": "1.0.0",
+  "description": "A Firefox extension for efficient tab management",
+  "scripts": {
+    "clean": "rm -rf dist/",
+    "copy-assets": "mkdir -p dist && cp src/popup/popup.html manifest.json dist/",
+    "build": "npm run clean && webpack --mode production && npm run copy-assets",
+    "watch": "webpack --mode development --watch",
+    "start": "web-ext run --source-dir ./dist/",
+    "package": "web-ext build --source-dir ./dist/"
+  },
+  "devDependencies": {
+    "@types/firefox-webext-browser": "^111.0.1",
+    "typescript": "^5.0.0",
+    "ts-loader": "^9.5.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "web-ext": "^7.8.0"
+  }
+}
