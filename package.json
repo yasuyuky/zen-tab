@@ -4,7 +4,7 @@
   "description": "A Firefox extension for efficient tab management",
   "scripts": {
     "clean": "rm -rf dist/",
-    "copy-assets": "mkdir -p dist && cp src/popup/popup.html manifest.json dist/",
+    "copy-assets": "mkdir -p dist && cp src/page/index.html manifest.json dist/",
     "build": "npm run clean && webpack --mode production && npm run copy-assets",
     "watch": "webpack --mode development --watch",
     "start": "web-ext run --source-dir ./dist/",
