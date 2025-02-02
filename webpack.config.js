@@ -4,6 +4,7 @@ module.exports = {
   entry: {
     index: "./src/page/index.ts",
     background: "./src/background.ts",
+    options: "./src/options/options.ts",
   },
   output: {
     path: path.resolve(__dirname, "dist"),

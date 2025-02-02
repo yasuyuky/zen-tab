@@ -15,6 +15,22 @@ class TabManager {
   }
 
   private async init() {
+    // Load and apply custom styles
+    const { loadSettings, applyStyles } = await import("./styles");
+    const settings = await loadSettings();
+    applyStyles(settings);
+
+    // Listen for settings changes
+    browser.storage.onChanged.addListener(async (changes, area) => {
+      if (
+        area === "sync" &&
+        (changes.selectedColor || changes.pinnedColor || changes.hoverColor)
+      ) {
+        const newSettings = await loadSettings();
+        applyStyles(newSettings);
+      }
+    });
+
     this.searchInput.addEventListener("input", () => this.handleSearch());
     await this.updateTabs();
     // Focus on search input when page loads
