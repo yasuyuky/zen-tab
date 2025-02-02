@@ -93,8 +93,16 @@ class TabManager {
   }
 
   private async updateTabs(searchQuery: string = "") {
-    const tabs = await browser.tabs.query({});
-    const groups = this.groupTabs(tabs, searchQuery);
+    const [currentTab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    const allTabs = await browser.tabs.query({});
+
+    // Filter out the current tab (Zen Tab interface)
+    const filteredTabs = allTabs.filter((tab) => tab.id !== currentTab.id);
+
+    const groups = this.groupTabs(filteredTabs, searchQuery);
     this.renderGroups(groups);
   }
 
