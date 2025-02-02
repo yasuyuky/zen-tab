@@ -15,6 +15,8 @@ class TabManager {
   private async init() {
     this.searchInput.addEventListener("input", () => this.handleSearch());
     await this.updateTabs();
+    // Focus on search input when popup opens
+    this.searchInput.focus();
   }
 
   private async updateTabs(searchQuery: string = "") {
