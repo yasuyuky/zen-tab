@@ -5,7 +5,7 @@ class TabManager {
   private tabGroupsContainer: HTMLElement;
   private selectedTabElement: HTMLElement | null = null;
   private allTabElements: HTMLElement[] = [];
-  private searchMode: "normal" | "pinned" = "normal";
+  private searchMode: "normal" | "pinned" | "audible" = "normal";
 
   constructor() {
     this.searchInput = document.getElementById("search") as HTMLInputElement;
@@ -130,8 +130,10 @@ class TabManager {
     let filteredTabs = allTabs.filter((tab) => tab.id !== currentTab.id);
     if (this.searchMode === "normal") {
       filteredTabs = filteredTabs.filter((tab) => !tab.pinned);
-    } else {
+    } else if (this.searchMode === "pinned") {
       filteredTabs = filteredTabs.filter((tab) => tab.pinned);
+    } else if (this.searchMode === "audible") {
+      filteredTabs = filteredTabs.filter((tab) => tab.audible);
     }
 
     const groups = this.groupTabs(filteredTabs, searchQuery);
@@ -244,7 +246,13 @@ class TabManager {
     }
   }
   private toggleSearchMode() {
-    this.searchMode = this.searchMode === "normal" ? "pinned" : "normal";
+    this.searchMode =
+      this.searchMode === "normal"
+        ? "pinned"
+        : this.searchMode === "pinned"
+        ? "audible"
+        : "normal";
+
     console.log(`Switched to ${this.searchMode} mode`);
     this.updateTabs(this.searchInput.value);
     this.updateModeIndicator();
@@ -258,7 +266,10 @@ class TabManager {
     }">Tabs</span>
 <span id="indicator-pinned" class="${
       this.searchMode === "pinned" ? "current-mode" : ""
-    }">Pinned</span>`;
+    }">Pinned</span>
+<span id="indicator-audible" class="${
+      this.searchMode === "audible" ? "current-mode" : ""
+    }">Audible</span>`;
   }
 }
 
