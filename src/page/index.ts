@@ -3,6 +3,8 @@ import { TabGroup, TabGrouping } from "../types";
 class TabManager {
   private searchInput: HTMLInputElement;
   private tabGroupsContainer: HTMLElement;
+  private selectedTabElement: HTMLElement | null = null;
+  private allTabElements: HTMLElement[] = [];
 
   constructor() {
     this.searchInput = document.getElementById("search") as HTMLInputElement;
@@ -22,8 +24,72 @@ class TabManager {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         window.close();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!this.selectedTabElement && this.allTabElements.length > 0) {
+          this.selectTabAtIndex(0);
+        } else {
+          this.selectNextTab();
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!this.selectedTabElement && this.allTabElements.length > 0) {
+          this.selectTabAtIndex(this.allTabElements.length - 1);
+        } else {
+          this.selectPreviousTab();
+        }
+      } else if (e.key === "Enter" && this.selectedTabElement) {
+        e.preventDefault();
+        const tabId = this.selectedTabElement.getAttribute("data-tab-id");
+        const windowId = this.selectedTabElement.getAttribute("data-window-id");
+        if (tabId && windowId) {
+          this.switchToTab({
+            id: parseInt(tabId),
+            windowId: parseInt(windowId),
+          } as browser.tabs.Tab);
+        }
       }
     });
+
+    // Clear selection when search input changes
+    this.searchInput.addEventListener("input", () => {
+      if (this.selectedTabElement) {
+        this.selectedTabElement.classList.remove("selected");
+        this.selectedTabElement = null;
+      }
+    });
+  }
+
+  private selectNextTab() {
+    const currentIndex = this.selectedTabElement
+      ? this.allTabElements.indexOf(this.selectedTabElement)
+      : -1;
+    const nextIndex =
+      currentIndex < this.allTabElements.length - 1 ? currentIndex + 1 : 0;
+    this.selectTabAtIndex(nextIndex);
+  }
+
+  private selectPreviousTab() {
+    const currentIndex = this.selectedTabElement
+      ? this.allTabElements.indexOf(this.selectedTabElement)
+      : 0;
+    const prevIndex =
+      currentIndex > 0 ? currentIndex - 1 : this.allTabElements.length - 1;
+    this.selectTabAtIndex(prevIndex);
+  }
+
+  private selectTabAtIndex(index: number) {
+    if (this.selectedTabElement) {
+      this.selectedTabElement.classList.remove("selected");
+    }
+    this.selectedTabElement = this.allTabElements[index];
+    if (this.selectedTabElement) {
+      this.selectedTabElement.classList.add("selected");
+      this.selectedTabElement.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
   }
 
   private async updateTabs(searchQuery: string = "") {
@@ -71,6 +137,8 @@ class TabManager {
 
   private renderGroups(groups: TabGroup[]) {
     this.tabGroupsContainer.innerHTML = "";
+    this.allTabElements = [];
+    this.selectedTabElement = null;
 
     groups.forEach((group) => {
       const groupElement = document.createElement("div");
@@ -84,11 +152,16 @@ class TabManager {
       group.tabs.forEach((tab) => {
         const tabElement = document.createElement("div");
         tabElement.className = "tab-item" + (tab.pinned ? " pinned" : "");
+        tabElement.setAttribute("data-tab-id", tab.id?.toString() || "");
+        tabElement.setAttribute(
+          "data-window-id",
+          tab.windowId?.toString() || ""
+        );
 
         const titleSpan = document.createElement("span");
         titleSpan.className = "tab-title";
         titleSpan.textContent = tab.title || "";
-        titleSpan.addEventListener("click", () => this.switchToTab(tab));
+        tabElement.addEventListener("click", () => this.switchToTab(tab));
 
         tabElement.appendChild(titleSpan);
 
@@ -102,6 +175,8 @@ class TabManager {
           });
           tabElement.appendChild(closeButton);
         }
+
+        this.allTabElements.push(tabElement);
         groupElement.appendChild(tabElement);
       });
 
