@@ -5,6 +5,7 @@ class TabManager {
   private tabGroupsContainer: HTMLElement;
   private selectedTabElement: HTMLElement | null = null;
   private allTabElements: HTMLElement[] = [];
+  private searchMode: "normal" | "pinned" = "normal";
 
   constructor() {
     this.searchInput = document.getElementById("search") as HTMLInputElement;
@@ -32,6 +33,13 @@ class TabManager {
     });
 
     this.searchInput.addEventListener("input", () => this.handleSearch());
+    const modeIndicator = document.createElement("div");
+    modeIndicator.id = "mode-indicator";
+    this.searchInput.parentElement?.insertBefore(
+      modeIndicator,
+      this.searchInput
+    );
+    this.updateModeIndicator();
     await this.updateTabs();
     // Focus on search input when page loads
     this.searchInput.focus();
@@ -40,6 +48,9 @@ class TabManager {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         window.close();
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        this.toggleSearchMode();
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
         if (!this.selectedTabElement && this.allTabElements.length > 0) {
@@ -116,7 +127,12 @@ class TabManager {
     const allTabs = await browser.tabs.query({});
 
     // Filter out the current tab (Zen Tab interface)
-    const filteredTabs = allTabs.filter((tab) => tab.id !== currentTab.id);
+    let filteredTabs = allTabs.filter((tab) => tab.id !== currentTab.id);
+    if (this.searchMode === "normal") {
+      filteredTabs = filteredTabs.filter((tab) => !tab.pinned);
+    } else {
+      filteredTabs = filteredTabs.filter((tab) => tab.pinned);
+    }
 
     const groups = this.groupTabs(filteredTabs, searchQuery);
     this.renderGroups(groups);
@@ -226,6 +242,23 @@ class TabManager {
       await browser.tabs.remove(tab.id);
       await this.updateTabs(this.searchInput.value);
     }
+  }
+  private toggleSearchMode() {
+    this.searchMode = this.searchMode === "normal" ? "pinned" : "normal";
+    console.log(`Switched to ${this.searchMode} mode`);
+    this.updateTabs(this.searchInput.value);
+    this.updateModeIndicator();
+  }
+
+  private updateModeIndicator() {
+    const modeIndicator = document.getElementById("mode-indicator");
+    if (!modeIndicator) return;
+    modeIndicator.innerHTML = `<span id="indicator-normal" class="${
+      this.searchMode === "normal" ? "current-mode" : ""
+    }">Tabs</span>
+<span id="indicator-pinned" class="${
+      this.searchMode === "pinned" ? "current-mode" : ""
+    }">Pinned</span>`;
   }
 }
 

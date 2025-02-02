@@ -21,9 +21,15 @@ export function applyStyles(settings: ZenTabSettings) {
       background-color: ${settings.selectedColor} !important;
       outline: 2px solid ${settings.pinnedColor} !important;
     }
-    .pinned {
-      background-color: rgba(0, 0, 0, 0.03);
-      border-left: 2px solid ${settings.pinnedColor} !important;
+    #mode-indicator {
+      margin-bottom: 10px;
+    }
+    #mode-indicator span {
+      margin-right: 5px;
+    }
+    #mode-indicator span.current-mode {
+      font-weight: bold;
+      color: inherit;
     }
   `;
 }
