@@ -74,23 +74,25 @@ class TabManager {
 
       group.tabs.forEach((tab) => {
         const tabElement = document.createElement("div");
-        tabElement.className = "tab-item";
+        tabElement.className = "tab-item" + (tab.pinned ? " pinned" : "");
 
         const titleSpan = document.createElement("span");
         titleSpan.className = "tab-title";
         titleSpan.textContent = tab.title || "";
         titleSpan.addEventListener("click", () => this.switchToTab(tab));
 
-        const closeButton = document.createElement("span");
-        closeButton.className = "tab-close";
-        closeButton.textContent = "×";
-        closeButton.addEventListener("click", (e) => {
-          e.stopPropagation();
-          this.closeTab(tab);
-        });
-
         tabElement.appendChild(titleSpan);
-        tabElement.appendChild(closeButton);
+
+        if (!tab.pinned) {
+          const closeButton = document.createElement("span");
+          closeButton.className = "tab-close";
+          closeButton.textContent = "×";
+          closeButton.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.closeTab(tab);
+          });
+          tabElement.appendChild(closeButton);
+        }
         groupElement.appendChild(tabElement);
       });
 
