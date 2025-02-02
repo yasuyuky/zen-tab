@@ -2,33 +2,39 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <title>Zen Tab</title>
     <style>
       body {
-        width: 400px;
-        padding: 16px;
+        max-width: 800px;
+        margin: 32px auto;
+        padding: 0 16px;
         font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
       }
       #search {
-        width: 95%;
-        padding: 8px;
-        margin-bottom: 16px;
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 24px;
         border: 1px solid #ccc;
         border-radius: 4px;
+        font-size: 16px;
       }
       .tab-group {
-        margin-bottom: 16px;
+        margin-bottom: 24px;
       }
       .group-title {
         font-weight: bold;
-        margin-bottom: 8px;
-        padding-bottom: 4px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
         border-bottom: 1px solid #eee;
+        font-size: 14px;
+        color: #666;
       }
       .tab-item {
         display: flex;
         align-items: center;
-        padding: 4px;
+        padding: 8px;
         cursor: pointer;
+        border-radius: 4px;
       }
       .tab-item:hover {
         background-color: #f0f0f0;
@@ -38,12 +44,14 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        font-size: 14px;
       }
       .tab-close {
-        padding: 4px;
+        padding: 4px 8px;
         margin-left: 8px;
         cursor: pointer;
         opacity: 0.6;
+        font-size: 16px;
       }
       .tab-close:hover {
         opacity: 1;
@@ -57,6 +65,6 @@
   <body>
     <input type="text" id="search" placeholder="Search tabs..." />
     <div id="tab-groups"></div>
-    <script src="popup.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>

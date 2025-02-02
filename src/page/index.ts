@@ -15,8 +15,15 @@ class TabManager {
   private async init() {
     this.searchInput.addEventListener("input", () => this.handleSearch());
     await this.updateTabs();
-    // Focus on search input when popup opens
+    // Focus on search input when page loads
     this.searchInput.focus();
+
+    // Listen for keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        window.close();
+      }
+    });
   }
 
   private async updateTabs(searchQuery: string = "") {
@@ -111,6 +118,7 @@ class TabManager {
     if (tab.id && tab.windowId) {
       await browser.tabs.update(tab.id, { active: true });
       await browser.windows.update(tab.windowId, { focused: true });
+      window.close();
     }
   }
 
@@ -122,7 +130,7 @@ class TabManager {
   }
 }
 
-// Initialize the tab manager when the popup loads
+// Initialize the tab manager when the page loads
 document.addEventListener("DOMContentLoaded", () => {
   new TabManager();
 });
