@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Zen Tab Settings</title>
+    <style>
+      body {
+        max-width: 800px;
+        margin: 32px auto;
+        padding: 0 16px;
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+      }
+      .setting-group {
+        margin-bottom: 24px;
+      }
+      .setting-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+      .setting-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+      .setting-label {
+        width: 200px;
+        margin-right: 16px;
+      }
+      .color-preview {
+        width: 24px;
+        height: 24px;
+        border: 1px solid #ccc;
+        margin-left: 8px;
+      }
+      .button-row {
+        margin-top: 24px;
+        text-align: right;
+      }
+      button {
+        padding: 8px 16px;
+        background: #0060df;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0250bb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="setting-group">
+      <div class="setting-title">Colors</div>
+      <div class="setting-row">
+        <div class="setting-label">Selected tab background</div>
+        <input type="color" id="selectedColor" />
+        <div class="color-preview" id="selectedPreview"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Pinned tab indicator</div>
+        <input type="color" id="pinnedColor" />
+        <div class="color-preview" id="pinnedPreview"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Hover background</div>
+        <input type="color" id="hoverColor" />
+        <div class="color-preview" id="hoverPreview"></div>
+      </div>
+    </div>
+    <div class="button-row">
+      <button id="save">Save Settings</button>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>
