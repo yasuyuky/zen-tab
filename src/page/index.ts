@@ -43,6 +43,9 @@ class TabManager {
     await this.updateTabs();
     // Focus on search input when page loads
     this.searchInput.focus();
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) window.close();
+    });
 
     // Listen for keyboard shortcuts
     document.addEventListener("keydown", (e) => {
