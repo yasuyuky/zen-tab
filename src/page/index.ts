@@ -256,6 +256,7 @@ class TabManager {
     console.log(`Switched to ${this.searchMode} mode`);
     this.updateTabs(this.searchInput.value);
     this.updateModeIndicator();
+    this.searchInput.focus();
   }
 
   private updateModeIndicator() {
