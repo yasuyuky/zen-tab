@@ -2,12 +2,14 @@ interface ZenTabSettings {
   selectedColor: string;
   pinnedColor: string;
   hoverColor: string;
+  backgroundImage: string;
 }
 
 const defaultSettings: ZenTabSettings = {
   selectedColor: "#f0f0f0",
   pinnedColor: "#0060df",
   hoverColor: "#f0f0f0",
+  backgroundImage: "",
 };
 
 class OptionsManager {
@@ -15,6 +17,8 @@ class OptionsManager {
   private pinnedColorInput: HTMLInputElement;
   private hoverColorInput: HTMLInputElement;
   private saveButton: HTMLButtonElement;
+  private backgroundUploader: HTMLInputElement;
+  private backgroundImageData: string = "";
 
   constructor() {
     this.selectedColorInput = document.getElementById(
@@ -27,8 +31,39 @@ class OptionsManager {
       "hoverColor"
     ) as HTMLInputElement;
     this.saveButton = document.getElementById("save") as HTMLButtonElement;
+    this.backgroundUploader = document.getElementById(
+      "backgroundUploader"
+    ) as HTMLInputElement;
+    this.backgroundUploader.addEventListener("change", () =>
+      this.handleBackgroundUpload()
+    );
 
     this.init();
+  }
+
+  private handleBackgroundUpload() {
+    const file = this.backgroundUploader.files
+      ? this.backgroundUploader.files[0]
+      : null;
+    if (!file) return;
+
+    const maxSize = 10 * 1024 * 1024; // 10MB limit
+    if (file.size > maxSize) {
+      alert("Image file is too large. Please choose an image under 10MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result && result.startsWith("data:image/")) {
+        this.backgroundImageData = result;
+        console.log("Background image is loaded");
+      } else {
+        alert("Invalid image file. Please choose a valid image file.");
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   private async init() {
@@ -53,17 +88,30 @@ class OptionsManager {
   }
 
   private async loadSettings(): Promise<ZenTabSettings> {
-    const result = await browser.storage.sync.get(defaultSettings);
-    return result as ZenTabSettings;
+    const [syncResult, localResult] = await Promise.all([
+      browser.storage.sync.get({
+        selectedColor: defaultSettings.selectedColor,
+        pinnedColor: defaultSettings.pinnedColor,
+        hoverColor: defaultSettings.hoverColor,
+      }),
+      browser.storage.local.get({
+        backgroundImage: defaultSettings.backgroundImage,
+      }),
+    ]);
+    return {
+      ...syncResult,
+      backgroundImage: localResult.backgroundImage,
+    } as ZenTabSettings;
   }
 
   private updateInputs(settings: ZenTabSettings) {
     this.selectedColorInput.value = settings.selectedColor;
     this.pinnedColorInput.value = settings.pinnedColor;
     this.hoverColorInput.value = settings.hoverColor;
+    this.backgroundImageData = settings.backgroundImage;
   }
 
-  private updatePreview(type: keyof ZenTabSettings) {
+  private updatePreview(type: "selectedColor" | "pinnedColor" | "hoverColor") {
     const preview = document.getElementById(`${type}Preview`);
     if (preview) {
       const input = this[`${type}Input`] as HTMLInputElement;
@@ -78,13 +126,20 @@ class OptionsManager {
   }
 
   private async saveSettings() {
-    const settings: ZenTabSettings = {
+    const syncSettings = {
       selectedColor: this.selectedColorInput.value,
       pinnedColor: this.pinnedColorInput.value,
       hoverColor: this.hoverColorInput.value,
     };
 
-    await browser.storage.sync.set(settings);
+    const localSettings = {
+      backgroundImage: this.backgroundImageData || "",
+    };
+
+    await Promise.all([
+      browser.storage.sync.set(syncSettings),
+      browser.storage.local.set(localSettings),
+    ]);
     this.showSaveConfirmation();
   }
 

@@ -16,10 +16,12 @@ export interface ZenTabSettings {
   selectedColor: string;
   pinnedColor: string;
   hoverColor: string;
+  backgroundImage: string;
 }
 
 export const defaultSettings: ZenTabSettings = {
   selectedColor: "#f0f0f0",
   pinnedColor: "#0060df",
   hoverColor: "#f0f0f0",
+  backgroundImage: "",
 };

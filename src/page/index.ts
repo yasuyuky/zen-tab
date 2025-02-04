@@ -24,8 +24,11 @@ class TabManager {
     // Listen for settings changes
     browser.storage.onChanged.addListener(async (changes, area) => {
       if (
-        area === "sync" &&
-        (changes.selectedColor || changes.pinnedColor || changes.hoverColor)
+        (area === "sync" &&
+          (changes.selectedColor ||
+            changes.pinnedColor ||
+            changes.hoverColor)) ||
+        (area === "local" && changes.backgroundImage)
       ) {
         const newSettings = await loadSettings();
         applyStyles(newSettings);
