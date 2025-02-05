@@ -81,6 +81,16 @@ class TabManager {
             windowId: parseInt(windowId),
           } as browser.tabs.Tab);
         }
+      } else if (
+        (e.key === "Backspace" || e.key === "Delete") &&
+        e.metaKey &&
+        this.selectedTabElement
+      ) {
+        e.preventDefault();
+        const tabId = this.selectedTabElement.getAttribute("data-tab-id");
+        if (tabId) {
+          this.closeTab({ id: parseInt(tabId) } as browser.tabs.Tab);
+        }
       }
     });
 
