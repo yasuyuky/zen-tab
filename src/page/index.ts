@@ -150,15 +150,19 @@ class TabManager {
     });
     const allTabs = await browser.tabs.query({});
 
-    // Filter out the current tab (Zen Tab interface)
-    let filteredTabs = allTabs.filter((tab) => tab.id !== currentTab.id);
-    if (this.searchMode === "normal") {
-      filteredTabs = filteredTabs.filter((tab) => !tab.pinned);
-    } else if (this.searchMode === "pinned") {
-      filteredTabs = filteredTabs.filter((tab) => tab.pinned);
-    } else if (this.searchMode === "audible") {
-      filteredTabs = filteredTabs.filter((tab) => tab.audible);
+    // Filter out current tab and apply mode-specific filtering
+    const filteredTabs = allTabs
+      .filter((tab) => tab.id !== currentTab.id)
+      .filter((tab) => {
+        switch (this.searchMode) {
+          case "normal":
+            return !tab.pinned;
+          case "pinned":
+            return tab.pinned;
+          case "audible":
+            return tab.audible;
     }
+      });
 
     const groups = this.groupTabs(filteredTabs, searchQuery);
     this.renderGroups(groups);
