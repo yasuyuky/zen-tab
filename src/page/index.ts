@@ -270,12 +270,11 @@ class TabManager {
     }
   }
   private toggleSearchMode() {
-    this.searchMode =
-      this.searchMode === "normal"
-        ? "pinned"
-        : this.searchMode === "pinned"
-        ? "audible"
-        : "normal";
+    const currentIndex = this.modes.findIndex(
+      ({ id }) => id === this.searchMode
+    );
+    const nextIndex = (currentIndex + 1) % this.modes.length;
+    this.searchMode = this.modes[nextIndex].id as typeof this.searchMode;
 
     console.log(`Switched to ${this.searchMode} mode`);
     this.updateTabs(this.searchInput.value);
@@ -283,50 +282,39 @@ class TabManager {
     this.searchInput.focus();
   }
 
+  private readonly modes = [
+    { id: "normal", label: "Tabs" },
+    { id: "pinned", label: "Pinned" },
+    { id: "audible", label: "Audible" },
+  ] as const;
+
   private updateModeIndicator() {
     const modeIndicator = document.getElementById("mode-indicator");
     if (!modeIndicator) return;
-    modeIndicator.innerHTML = `<span id="indicator-normal" class="${
-      this.searchMode === "normal" ? "current-mode" : ""
-    }">Tabs</span>
-<span id="indicator-pinned" class="${
-      this.searchMode === "pinned" ? "current-mode" : ""
-    }">Pinned</span>
-<span id="indicator-audible" class="${
-      this.searchMode === "audible" ? "current-mode" : ""
-    }">Audible</span>`;
 
-    // Add click handlers for mode switching
-    const normalIndicator = document.getElementById("indicator-normal");
-    const pinnedIndicator = document.getElementById("indicator-pinned");
-    const audibleIndicator = document.getElementById("indicator-audible");
+    // Generate indicators HTML
+    modeIndicator.innerHTML = this.modes
+      .map(
+        ({ id, label }) => `
+        <span id="indicator-${id}" class="${
+          this.searchMode === id ? "current-mode" : ""
+        }">
+          ${label}
+        </span>
+      `
+      )
+      .join("");
 
-    if (normalIndicator) {
-      normalIndicator.addEventListener("click", () => {
-        this.searchMode = "normal";
+    // Add click handlers
+    this.modes.forEach(({ id }) => {
+      const indicator = document.getElementById(`indicator-${id}`);
+      indicator?.addEventListener("click", () => {
+        this.searchMode = id as typeof this.searchMode;
         this.updateTabs(this.searchInput.value);
         this.updateModeIndicator();
         this.searchInput.focus();
       });
-    }
-
-    if (pinnedIndicator) {
-      pinnedIndicator.addEventListener("click", () => {
-        this.searchMode = "pinned";
-        this.updateTabs(this.searchInput.value);
-        this.updateModeIndicator();
-        this.searchInput.focus();
       });
-    }
-
-    if (audibleIndicator) {
-      audibleIndicator.addEventListener("click", () => {
-        this.searchMode = "audible";
-        this.updateTabs(this.searchInput.value);
-        this.updateModeIndicator();
-        this.searchInput.focus();
-      });
-    }
   }
 }
 
