@@ -295,6 +295,38 @@ class TabManager {
 <span id="indicator-audible" class="${
       this.searchMode === "audible" ? "current-mode" : ""
     }">Audible</span>`;
+
+    // Add click handlers for mode switching
+    const normalIndicator = document.getElementById("indicator-normal");
+    const pinnedIndicator = document.getElementById("indicator-pinned");
+    const audibleIndicator = document.getElementById("indicator-audible");
+
+    if (normalIndicator) {
+      normalIndicator.addEventListener("click", () => {
+        this.searchMode = "normal";
+        this.updateTabs(this.searchInput.value);
+        this.updateModeIndicator();
+        this.searchInput.focus();
+      });
+    }
+
+    if (pinnedIndicator) {
+      pinnedIndicator.addEventListener("click", () => {
+        this.searchMode = "pinned";
+        this.updateTabs(this.searchInput.value);
+        this.updateModeIndicator();
+        this.searchInput.focus();
+      });
+    }
+
+    if (audibleIndicator) {
+      audibleIndicator.addEventListener("click", () => {
+        this.searchMode = "audible";
+        this.updateTabs(this.searchInput.value);
+        this.updateModeIndicator();
+        this.searchInput.focus();
+      });
+    }
   }
 }
 
