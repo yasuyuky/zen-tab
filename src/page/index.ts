@@ -161,7 +161,7 @@ class TabManager {
             return tab.pinned;
           case "audible":
             return tab.audible;
-    }
+        }
       });
 
     const groups = this.groupTabs(filteredTabs, searchQuery);
@@ -198,10 +198,8 @@ class TabManager {
   private matchesSearch(tab: browser.tabs.Tab, query: string): boolean {
     const searchStr = query.toLowerCase();
     return (
-      tab.title?.toLowerCase().includes(searchStr) ||
-      false ||
-      tab.url?.toLowerCase().includes(searchStr) ||
-      false
+      !!tab.title?.toLowerCase().includes(searchStr) ||
+      !!tab.url?.toLowerCase().includes(searchStr)
     );
   }
 
@@ -318,7 +316,7 @@ class TabManager {
         this.updateModeIndicator();
         this.searchInput.focus();
       });
-      });
+    });
   }
 }
 
