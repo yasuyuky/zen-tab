@@ -3,7 +3,7 @@
   "name": "Zen Tab",
   "version": "0.1.0",
   "description": "Zen Tab is a new tab page that helps you focus on what's important.",
-  "permissions": ["tabs", "<all_urls>", "storage"],
+  "permissions": ["tabs", "<all_urls>", "storage", "search"],
   "background": {
     "scripts": ["background.js"]
   },
