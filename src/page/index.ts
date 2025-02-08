@@ -300,7 +300,7 @@ class TabManager {
         ({ id, label }) => `
         <span id="indicator-${id}" class="${
           this.searchMode === id ? "current-mode" : ""
-        }">
+        }" style="cursor: pointer;">
           ${label}
         </span>
       `
