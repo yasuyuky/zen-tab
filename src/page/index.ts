@@ -74,14 +74,14 @@ class TabManager {
       } else if (e.key === "Enter") {
         e.preventDefault();
         if (this.selectedTabElement) {
-        const tabId = this.selectedTabElement.getAttribute("data-tab-id");
+          const tabId = this.selectedTabElement.getAttribute("data-tab-id");
           const windowId =
             this.selectedTabElement.getAttribute("data-window-id");
-        if (tabId && windowId) {
-          this.switchToTab({
-            id: parseInt(tabId),
-            windowId: parseInt(windowId),
-          } as browser.tabs.Tab);
+          if (tabId && windowId) {
+            this.switchToTab({
+              id: parseInt(tabId),
+              windowId: parseInt(windowId),
+            } as browser.tabs.Tab);
           }
         } else {
           const searchText = this.searchInput.value;
