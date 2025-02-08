@@ -71,15 +71,23 @@ class TabManager {
         } else {
           this.selectPreviousTab();
         }
-      } else if (e.key === "Enter" && this.selectedTabElement) {
+      } else if (e.key === "Enter") {
         e.preventDefault();
+        if (this.selectedTabElement) {
         const tabId = this.selectedTabElement.getAttribute("data-tab-id");
-        const windowId = this.selectedTabElement.getAttribute("data-window-id");
+          const windowId =
+            this.selectedTabElement.getAttribute("data-window-id");
         if (tabId && windowId) {
           this.switchToTab({
             id: parseInt(tabId),
             windowId: parseInt(windowId),
           } as browser.tabs.Tab);
+          }
+        } else {
+          const searchText = this.searchInput.value;
+          if (searchText.trim()) {
+            browser.search.query({ text: searchText });
+          }
         }
       } else if (
         (e.key === "Backspace" || e.key === "Delete") &&
