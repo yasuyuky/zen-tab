@@ -156,7 +156,7 @@ class TabManager {
       .filter((tab) => {
         switch (this.searchMode) {
           case "normal":
-            return !tab.pinned;
+            return true;
           case "pinned":
             return tab.pinned;
           case "audible":
