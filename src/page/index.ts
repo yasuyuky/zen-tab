@@ -267,8 +267,22 @@ class TabManager {
 
   private async closeTab(tab: browser.tabs.Tab) {
     if (tab.id) {
+      // Get the current index before removing the tab
+      const currentIndex = this.allTabElements.indexOf(
+        this.selectedTabElement!
+      );
       await browser.tabs.remove(tab.id);
       await this.updateTabs(this.searchInput.value);
+
+      // After updating tabs, select the next tab if available
+      if (this.allTabElements.length > 0) {
+        // If we're at the last tab, select the previous one
+        const nextIndex =
+          currentIndex >= this.allTabElements.length
+            ? this.allTabElements.length - 1
+            : currentIndex;
+        this.selectTabAtIndex(nextIndex);
+      }
     }
   }
   private toggleSearchMode() {
