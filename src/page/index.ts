@@ -5,7 +5,13 @@ class TabManager {
   private tabGroupsContainer: HTMLElement;
   private selectedTabElement: HTMLElement | null = null;
   private allTabElements: HTMLElement[] = [];
-  private searchMode: "normal" | "pinned" | "audible" = "normal";
+  private readonly modes = [
+    { id: "normal", label: "Tabs" },
+    { id: "pinned", label: "Pinned" },
+    { id: "audible", label: "Audible" },
+  ] as const;
+
+  private searchMode: (typeof this.modes)[number]["id"] = "normal";
 
   constructor() {
     this.searchInput = document.getElementById("search") as HTMLInputElement;
@@ -297,12 +303,6 @@ class TabManager {
     this.updateModeIndicator();
     this.searchInput.focus();
   }
-
-  private readonly modes = [
-    { id: "normal", label: "Tabs" },
-    { id: "pinned", label: "Pinned" },
-    { id: "audible", label: "Audible" },
-  ] as const;
 
   private updateModeIndicator() {
     const modeIndicator = document.getElementById("mode-indicator");
