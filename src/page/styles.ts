@@ -7,6 +7,7 @@ export async function loadSettings(): Promise<ZenTabSettings> {
       pinnedColor: defaultSettings.pinnedColor,
       hoverColor: defaultSettings.hoverColor,
       showFavicon: defaultSettings.showFavicon,
+      darkMode: defaultSettings.darkMode,
     }),
     browser.storage.local.get({
       backgroundImage: defaultSettings.backgroundImage,
@@ -19,18 +20,36 @@ export async function loadSettings(): Promise<ZenTabSettings> {
 }
 
 export const baseStyles = `
+  :root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --border-color: #cccccc;
+    --container-bg: rgba(255, 255, 255, 0.1);
+    --search-bg: rgba(255, 255, 255, 0.2);
+  }
+
+  [data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --border-color: #404040;
+    --container-bg: rgba(0, 0, 0, 0.2);
+    --search-bg: rgba(0, 0, 0, 0.3);
+  }
+
   body {
     max-width: 800px;
     margin: 0 auto;
     padding: 0;
     font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
   }
   .search-container {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--search-bg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     padding: 16px 0;
@@ -45,7 +64,9 @@ export const baseStyles = `
   #search {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
     border-radius: 4px;
     font-size: 16px;
     box-sizing: border-box;
@@ -53,7 +74,7 @@ export const baseStyles = `
   #tab-groups {
     margin-top: 120px;
     padding: 0 16px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--container-bg);
     backdrop-filter: blur(4px);
   }
   .tab-group {
@@ -63,9 +84,9 @@ export const baseStyles = `
     font-weight: bold;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #333;
+    border-bottom: 2px solid var(--border-color);
     font-size: 14px;
-    color: #333;
+    color: var(--text-color);
   }
   .tab-item {
     display: flex;
@@ -113,7 +134,7 @@ export function applyStyles(settings: ZenTabSettings) {
     document.head.appendChild(style);
   }
 
-  // Apply base styles
+  // Apply base styles and theme
   const baseStyleId = "base-styles";
   let baseStyle = document.getElementById(
     baseStyleId
@@ -124,6 +145,10 @@ export function applyStyles(settings: ZenTabSettings) {
     document.head.appendChild(baseStyle);
   }
   baseStyle.textContent = baseStyles;
+  document.body.setAttribute(
+    "data-theme",
+    settings.darkMode ? "dark" : "light"
+  );
 
   // Apply background image if available
   if (settings.backgroundImage) {

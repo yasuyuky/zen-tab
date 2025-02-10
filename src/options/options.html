@@ -4,32 +4,56 @@
     <meta charset="UTF-8" />
     <title>Zen Tab Settings</title>
     <style>
+      :root {
+        --bg-color: #ffffff;
+        --text-color: #000000;
+        --border-color: #cccccc;
+        --hover-bg: #0250bb;
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #1a1a1a;
+        --text-color: #ffffff;
+        --border-color: #404040;
+        --hover-bg: #2b75e0;
+      }
+
       body {
         max-width: 800px;
         margin: 32px auto;
         padding: 0 16px;
         font-family: -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
       }
+
       .setting-group {
         margin-bottom: 24px;
       }
+
       .setting-title {
         font-weight: bold;
         margin-bottom: 8px;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 4px;
       }
+
       .setting-row {
         display: flex;
         align-items: center;
         margin-bottom: 16px;
       }
+
       .setting-label {
         width: 200px;
         margin-right: 16px;
       }
+
       .button-row {
         margin-top: 24px;
         text-align: right;
       }
+
       button {
         padding: 8px 16px;
         background: #0060df;
@@ -38,8 +62,20 @@
         border-radius: 4px;
         cursor: pointer;
       }
+
       button:hover {
-        background: #0250bb;
+        background: var(--hover-bg);
+      }
+
+      input[type="color"] {
+        padding: 0;
+        width: 50px;
+        height: 30px;
+      }
+
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
       }
     </style>
   </head>
@@ -49,6 +85,10 @@
       <div class="setting-row">
         <div class="setting-label">Show favicons</div>
         <input type="checkbox" id="showFavicon" />
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Dark mode</div>
+        <input type="checkbox" id="darkMode" />
       </div>
     </div>
     <div class="setting-group">

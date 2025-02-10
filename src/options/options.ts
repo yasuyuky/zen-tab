@@ -1,18 +1,4 @@
-interface ZenTabSettings {
-  selectedColor: string;
-  pinnedColor: string;
-  hoverColor: string;
-  backgroundImage: string;
-  showFavicon: boolean;
-}
-
-const defaultSettings: ZenTabSettings = {
-  selectedColor: "#f0f0f0",
-  pinnedColor: "#0060df",
-  hoverColor: "#f0f0f0",
-  backgroundImage: "",
-  showFavicon: true,
-};
+import { ZenTabSettings, defaultSettings, darkModeSettings } from "../types";
 
 class OptionsManager {
   private selectedColorInput: HTMLInputElement;
@@ -21,6 +7,7 @@ class OptionsManager {
   private saveButton: HTMLButtonElement;
   private backgroundUploader: HTMLInputElement;
   private showFaviconInput: HTMLInputElement;
+  private darkModeInput: HTMLInputElement;
   private backgroundImageData: string = "";
 
   constructor() {
@@ -40,8 +27,15 @@ class OptionsManager {
     this.showFaviconInput = document.getElementById(
       "showFavicon"
     ) as HTMLInputElement;
+    this.darkModeInput = document.getElementById(
+      "darkMode"
+    ) as HTMLInputElement;
+
     this.backgroundUploader.addEventListener("change", () =>
       this.handleBackgroundUpload()
+    );
+    this.darkModeInput.addEventListener("change", () =>
+      this.handleThemeChange()
     );
 
     this.init();
@@ -72,6 +66,23 @@ class OptionsManager {
     reader.readAsDataURL(file);
   }
 
+  private handleThemeChange() {
+    const isDark = this.darkModeInput.checked;
+    document.body.setAttribute("data-theme", isDark ? "dark" : "light");
+
+    if (isDark) {
+      this.selectedColorInput.value = darkModeSettings.selectedColor!;
+      this.pinnedColorInput.value = darkModeSettings.pinnedColor!;
+      this.hoverColorInput.value = darkModeSettings.hoverColor!;
+    } else {
+      this.selectedColorInput.value = defaultSettings.selectedColor;
+      this.pinnedColorInput.value = defaultSettings.pinnedColor;
+      this.hoverColorInput.value = defaultSettings.hoverColor;
+    }
+
+    this.updateAllPreviews();
+  }
+
   private async init() {
     // Load current settings
     const settings = await this.loadSettings();
@@ -89,6 +100,12 @@ class OptionsManager {
     );
     this.saveButton.addEventListener("click", () => this.saveSettings());
 
+    // Set initial theme
+    document.body.setAttribute(
+      "data-theme",
+      settings.darkMode ? "dark" : "light"
+    );
+
     // Update previews initially
     this.updateAllPreviews();
   }
@@ -100,6 +117,7 @@ class OptionsManager {
         pinnedColor: defaultSettings.pinnedColor,
         hoverColor: defaultSettings.hoverColor,
         showFavicon: defaultSettings.showFavicon,
+        darkMode: defaultSettings.darkMode,
       }),
       browser.storage.local.get({
         backgroundImage: defaultSettings.backgroundImage,
@@ -117,6 +135,7 @@ class OptionsManager {
     this.hoverColorInput.value = settings.hoverColor;
     this.backgroundImageData = settings.backgroundImage;
     this.showFaviconInput.checked = settings.showFavicon;
+    this.darkModeInput.checked = settings.darkMode;
   }
 
   private updatePreview(type: "selectedColor" | "pinnedColor" | "hoverColor") {
@@ -139,6 +158,7 @@ class OptionsManager {
       pinnedColor: this.pinnedColorInput.value,
       hoverColor: this.hoverColorInput.value,
       showFavicon: this.showFaviconInput.checked,
+      darkMode: this.darkModeInput.checked,
     };
 
     const localSettings = {

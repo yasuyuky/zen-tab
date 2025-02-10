@@ -18,6 +18,7 @@ export interface ZenTabSettings {
   hoverColor: string;
   backgroundImage: string;
   showFavicon: boolean;
+  darkMode: boolean;
 }
 
 export const defaultSettings: ZenTabSettings = {
@@ -26,4 +27,11 @@ export const defaultSettings: ZenTabSettings = {
   hoverColor: "#f0f0f0",
   backgroundImage: "",
   showFavicon: true,
+  darkMode: false,
+};
+
+export const darkModeSettings: Partial<ZenTabSettings> = {
+  selectedColor: "#2b2b2b",
+  pinnedColor: "#4a9eff",
+  hoverColor: "#2b2b2b",
 };
