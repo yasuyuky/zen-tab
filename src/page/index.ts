@@ -5,6 +5,7 @@ class TabManager {
   private tabGroupsContainer: HTMLElement;
   private selectedTabElement: HTMLElement | null = null;
   private allTabElements: HTMLElement[] = [];
+  private showFavicon: boolean = true;
   private readonly modes = [
     { id: "normal", label: "Tabs" },
     { id: "pinned", label: "Pinned" },
@@ -26,6 +27,7 @@ class TabManager {
     const { loadSettings, applyStyles } = await import("./styles");
     const settings = await loadSettings();
     applyStyles(settings);
+    this.showFavicon = settings.showFavicon;
 
     // Listen for settings changes
     browser.storage.onChanged.addListener(async (changes, area) => {
@@ -33,11 +35,16 @@ class TabManager {
         (area === "sync" &&
           (changes.selectedColor ||
             changes.pinnedColor ||
-            changes.hoverColor)) ||
+            changes.hoverColor ||
+            changes.showFavicon)) ||
         (area === "local" && changes.backgroundImage)
       ) {
         const newSettings = await loadSettings();
         applyStyles(newSettings);
+        if (changes.showFavicon) {
+          this.showFavicon = newSettings.showFavicon;
+          this.updateTabs(this.searchInput.value);
+        }
       }
     });
 
@@ -226,6 +233,15 @@ class TabManager {
       group.tabs.forEach((tab) => {
         const tabElement = document.createElement("div");
         tabElement.className = "tab-item" + (tab.pinned ? " pinned" : "");
+
+        if (this.showFavicon && tab.favIconUrl) {
+          const favicon = document.createElement("img");
+          favicon.className = "tab-favicon";
+          favicon.src = tab.favIconUrl;
+          favicon.width = 16;
+          favicon.height = 16;
+          tabElement.appendChild(favicon);
+        }
         tabElement.setAttribute("data-tab-id", tab.id?.toString() || "");
         tabElement.setAttribute(
           "data-window-id",

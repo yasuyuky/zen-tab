@@ -6,6 +6,7 @@ export async function loadSettings(): Promise<ZenTabSettings> {
       selectedColor: defaultSettings.selectedColor,
       pinnedColor: defaultSettings.pinnedColor,
       hoverColor: defaultSettings.hoverColor,
+      showFavicon: defaultSettings.showFavicon,
     }),
     browser.storage.local.get({
       backgroundImage: defaultSettings.backgroundImage,
@@ -75,6 +76,10 @@ export const baseStyles = `
   }
   .tab-item:hover {
     background-color: #f0f0f0;
+  }
+  .tab-favicon {
+    margin-right: 8px;
+    flex-shrink: 0;
   }
   .tab-title {
     flex-grow: 1;

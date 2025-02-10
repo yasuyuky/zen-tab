@@ -3,6 +3,7 @@ interface ZenTabSettings {
   pinnedColor: string;
   hoverColor: string;
   backgroundImage: string;
+  showFavicon: boolean;
 }
 
 const defaultSettings: ZenTabSettings = {
@@ -10,6 +11,7 @@ const defaultSettings: ZenTabSettings = {
   pinnedColor: "#0060df",
   hoverColor: "#f0f0f0",
   backgroundImage: "",
+  showFavicon: true,
 };
 
 class OptionsManager {
@@ -18,6 +20,7 @@ class OptionsManager {
   private hoverColorInput: HTMLInputElement;
   private saveButton: HTMLButtonElement;
   private backgroundUploader: HTMLInputElement;
+  private showFaviconInput: HTMLInputElement;
   private backgroundImageData: string = "";
 
   constructor() {
@@ -33,6 +36,9 @@ class OptionsManager {
     this.saveButton = document.getElementById("save") as HTMLButtonElement;
     this.backgroundUploader = document.getElementById(
       "backgroundUploader"
+    ) as HTMLInputElement;
+    this.showFaviconInput = document.getElementById(
+      "showFavicon"
     ) as HTMLInputElement;
     this.backgroundUploader.addEventListener("change", () =>
       this.handleBackgroundUpload()
@@ -93,6 +99,7 @@ class OptionsManager {
         selectedColor: defaultSettings.selectedColor,
         pinnedColor: defaultSettings.pinnedColor,
         hoverColor: defaultSettings.hoverColor,
+        showFavicon: defaultSettings.showFavicon,
       }),
       browser.storage.local.get({
         backgroundImage: defaultSettings.backgroundImage,
@@ -109,6 +116,7 @@ class OptionsManager {
     this.pinnedColorInput.value = settings.pinnedColor;
     this.hoverColorInput.value = settings.hoverColor;
     this.backgroundImageData = settings.backgroundImage;
+    this.showFaviconInput.checked = settings.showFavicon;
   }
 
   private updatePreview(type: "selectedColor" | "pinnedColor" | "hoverColor") {
@@ -130,6 +138,7 @@ class OptionsManager {
       selectedColor: this.selectedColorInput.value,
       pinnedColor: this.pinnedColorInput.value,
       hoverColor: this.hoverColorInput.value,
+      showFavicon: this.showFaviconInput.checked,
     };
 
     const localSettings = {

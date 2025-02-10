@@ -17,6 +17,7 @@ export interface ZenTabSettings {
   pinnedColor: string;
   hoverColor: string;
   backgroundImage: string;
+  showFavicon: boolean;
 }
 
 export const defaultSettings: ZenTabSettings = {
@@ -24,4 +25,5 @@ export const defaultSettings: ZenTabSettings = {
   pinnedColor: "#0060df",
   hoverColor: "#f0f0f0",
   backgroundImage: "",
+  showFavicon: true,
 };
