@@ -108,9 +108,11 @@ class TabManager {
         this.selectedTabElement
       ) {
         e.preventDefault();
-        const tabId = this.selectedTabElement.getAttribute("data-tab-id");
-        if (tabId) {
-          this.closeTab({ id: parseInt(tabId) } as browser.tabs.Tab);
+        if (!this.selectedTabElement.classList.contains("pinned")) {
+          const tabId = this.selectedTabElement.getAttribute("data-tab-id");
+          if (tabId) {
+            this.closeTab({ id: parseInt(tabId) } as browser.tabs.Tab);
+          }
         }
       }
     });
