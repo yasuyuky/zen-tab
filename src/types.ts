@@ -12,13 +12,15 @@ export interface TabSearch {
   groups: TabGroup[];
 }
 
+export type ThemeMode = "light" | "dark" | "system";
+
 export interface ZenTabSettings {
   selectedColor: string;
   pinnedColor: string;
   hoverColor: string;
   backgroundImage: string;
   showFavicon: boolean;
-  darkMode: boolean;
+  themeMode: ThemeMode;
 }
 
 export const defaultSettings: ZenTabSettings = {
@@ -27,7 +29,7 @@ export const defaultSettings: ZenTabSettings = {
   hoverColor: "#f0f0f0",
   backgroundImage: "",
   showFavicon: true,
-  darkMode: false,
+  themeMode: "system",
 };
 
 export const darkModeSettings: Partial<ZenTabSettings> = {

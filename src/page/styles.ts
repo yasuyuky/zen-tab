@@ -1,4 +1,4 @@
-import { ZenTabSettings, defaultSettings } from "../types";
+import { ZenTabSettings, defaultSettings, ThemeMode } from "../types";
 
 export async function loadSettings(): Promise<ZenTabSettings> {
   const [syncResult, localResult] = await Promise.all([
@@ -7,7 +7,7 @@ export async function loadSettings(): Promise<ZenTabSettings> {
       pinnedColor: defaultSettings.pinnedColor,
       hoverColor: defaultSettings.hoverColor,
       showFavicon: defaultSettings.showFavicon,
-      darkMode: defaultSettings.darkMode,
+      themeMode: defaultSettings.themeMode,
     }),
     browser.storage.local.get({
       backgroundImage: defaultSettings.backgroundImage,
@@ -145,10 +145,22 @@ export function applyStyles(settings: ZenTabSettings) {
     document.head.appendChild(baseStyle);
   }
   baseStyle.textContent = baseStyles;
-  document.body.setAttribute(
-    "data-theme",
-    settings.darkMode ? "dark" : "light"
-  );
+
+  // Set up theme
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const isDark =
+    settings.themeMode === "dark" ||
+    (settings.themeMode === "system" && prefersDark);
+  document.body.setAttribute("data-theme", isDark ? "dark" : "light");
+
+  // Add system theme listener if needed
+  if (settings.themeMode === "system") {
+    const themeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const themeHandler = (e: MediaQueryListEvent) => {
+      document.body.setAttribute("data-theme", e.matches ? "dark" : "light");
+    };
+    themeQuery.addEventListener("change", themeHandler);
+  }
 
   // Apply background image if available
   if (settings.backgroundImage) {

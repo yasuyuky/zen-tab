@@ -77,6 +77,16 @@
         width: 20px;
         height: 20px;
       }
+
+      select {
+        padding: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-size: 14px;
+        min-width: 150px;
+      }
     </style>
   </head>
   <body>
@@ -87,8 +97,12 @@
         <input type="checkbox" id="showFavicon" />
       </div>
       <div class="setting-row">
-        <div class="setting-label">Dark mode</div>
-        <input type="checkbox" id="darkMode" />
+        <div class="setting-label">Theme</div>
+        <select id="themeMode">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="system">System (Match OS)</option>
+        </select>
       </div>
     </div>
     <div class="setting-group">

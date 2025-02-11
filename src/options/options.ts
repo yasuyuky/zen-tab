@@ -1,4 +1,9 @@
-import { ZenTabSettings, defaultSettings, darkModeSettings } from "../types";
+import {
+  ZenTabSettings,
+  defaultSettings,
+  darkModeSettings,
+  ThemeMode,
+} from "../types";
 
 class OptionsManager {
   private selectedColorInput: HTMLInputElement;
@@ -7,7 +12,7 @@ class OptionsManager {
   private saveButton: HTMLButtonElement;
   private backgroundUploader: HTMLInputElement;
   private showFaviconInput: HTMLInputElement;
-  private darkModeInput: HTMLInputElement;
+  private themeModeSelect: HTMLSelectElement;
   private backgroundImageData: string = "";
 
   constructor() {
@@ -27,14 +32,14 @@ class OptionsManager {
     this.showFaviconInput = document.getElementById(
       "showFavicon"
     ) as HTMLInputElement;
-    this.darkModeInput = document.getElementById(
-      "darkMode"
-    ) as HTMLInputElement;
+    this.themeModeSelect = document.getElementById(
+      "themeMode"
+    ) as HTMLSelectElement;
 
     this.backgroundUploader.addEventListener("change", () =>
       this.handleBackgroundUpload()
     );
-    this.darkModeInput.addEventListener("change", () =>
+    this.themeModeSelect.addEventListener("change", () =>
       this.handleThemeChange()
     );
 
@@ -67,7 +72,12 @@ class OptionsManager {
   }
 
   private handleThemeChange() {
-    const isDark = this.darkModeInput.checked;
+    const theme = this.themeModeSelect.value as ThemeMode;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const isDark = theme === "dark" || (theme === "system" && prefersDark);
+
     document.body.setAttribute("data-theme", isDark ? "dark" : "light");
 
     if (isDark) {
@@ -101,10 +111,14 @@ class OptionsManager {
     this.saveButton.addEventListener("click", () => this.saveSettings());
 
     // Set initial theme
-    document.body.setAttribute(
-      "data-theme",
-      settings.darkMode ? "dark" : "light"
-    );
+    this.themeModeSelect.value = settings.themeMode;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const isDark =
+      settings.themeMode === "dark" ||
+      (settings.themeMode === "system" && prefersDark);
+    document.body.setAttribute("data-theme", isDark ? "dark" : "light");
 
     // Update previews initially
     this.updateAllPreviews();
@@ -117,7 +131,7 @@ class OptionsManager {
         pinnedColor: defaultSettings.pinnedColor,
         hoverColor: defaultSettings.hoverColor,
         showFavicon: defaultSettings.showFavicon,
-        darkMode: defaultSettings.darkMode,
+        themeMode: defaultSettings.themeMode,
       }),
       browser.storage.local.get({
         backgroundImage: defaultSettings.backgroundImage,
@@ -135,7 +149,7 @@ class OptionsManager {
     this.hoverColorInput.value = settings.hoverColor;
     this.backgroundImageData = settings.backgroundImage;
     this.showFaviconInput.checked = settings.showFavicon;
-    this.darkModeInput.checked = settings.darkMode;
+    this.themeModeSelect.value = settings.themeMode;
   }
 
   private updatePreview(type: "selectedColor" | "pinnedColor" | "hoverColor") {
@@ -158,7 +172,7 @@ class OptionsManager {
       pinnedColor: this.pinnedColorInput.value,
       hoverColor: this.hoverColorInput.value,
       showFavicon: this.showFaviconInput.checked,
-      darkMode: this.darkModeInput.checked,
+      themeMode: this.themeModeSelect.value as ThemeMode,
     };
 
     const localSettings = {
