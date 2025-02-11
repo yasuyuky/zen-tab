@@ -120,12 +120,20 @@
         <input type="color" id="hoverColor" />
       </div>
     </div>
-    <input
-      type="file"
-      id="backgroundUploader"
-      accept="image/*"
-      style="display: block; margin: 1em 0"
-    />
+    <div class="setting-group">
+      <div class="setting-title">Background Image</div>
+      <div style="display: flex; align-items: center; gap: 16px">
+        <input
+          type="file"
+          id="backgroundUploader"
+          accept="image/*"
+          style="flex: 1"
+        />
+        <button id="clearBackground" style="background: #cc3d3d">
+          Clear Background
+        </button>
+      </div>
+    </div>
     <div class="button-row">
       <button id="save">Save Settings</button>
     </div>

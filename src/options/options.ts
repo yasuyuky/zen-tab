@@ -11,6 +11,7 @@ class OptionsManager {
   private hoverColorInput: HTMLInputElement;
   private saveButton: HTMLButtonElement;
   private backgroundUploader: HTMLInputElement;
+  private clearBackgroundButton: HTMLButtonElement;
   private showFaviconInput: HTMLInputElement;
   private themeModeSelect: HTMLSelectElement;
   private backgroundImageData: string = "";
@@ -29,6 +30,9 @@ class OptionsManager {
     this.backgroundUploader = document.getElementById(
       "backgroundUploader"
     ) as HTMLInputElement;
+    this.clearBackgroundButton = document.getElementById(
+      "clearBackground"
+    ) as HTMLButtonElement;
     this.showFaviconInput = document.getElementById(
       "showFavicon"
     ) as HTMLInputElement;
@@ -39,11 +43,21 @@ class OptionsManager {
     this.backgroundUploader.addEventListener("change", () =>
       this.handleBackgroundUpload()
     );
+    this.clearBackgroundButton.addEventListener("click", () =>
+      this.handleClearBackground()
+    );
     this.themeModeSelect.addEventListener("change", () =>
       this.handleThemeChange()
     );
 
     this.init();
+  }
+
+  private async handleClearBackground() {
+    this.backgroundImageData = "";
+    this.backgroundUploader.value = "";
+    await browser.storage.local.remove("backgroundImage");
+    this.showSaveConfirmation("Background cleared!");
   }
 
   private handleBackgroundUpload() {
@@ -186,9 +200,9 @@ class OptionsManager {
     this.showSaveConfirmation();
   }
 
-  private showSaveConfirmation() {
+  private showSaveConfirmation(message: string = "Saved!") {
     const originalText = this.saveButton.textContent;
-    this.saveButton.textContent = "Saved!";
+    this.saveButton.textContent = message;
     this.saveButton.disabled = true;
     setTimeout(() => {
       this.saveButton.textContent = originalText;
