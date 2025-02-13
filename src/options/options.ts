@@ -1,9 +1,4 @@
-import {
-  ZenTabSettings,
-  defaultSettings,
-  darkModeSettings,
-  ThemeMode,
-} from "../types";
+import { ZenTabSettings, defaultSettings, ThemeMode } from "../types";
 
 class OptionsManager {
   private accentColorInput: HTMLInputElement;
@@ -85,13 +80,6 @@ class OptionsManager {
     const isDark = theme === "dark" || (theme === "system" && prefersDark);
 
     document.body.setAttribute("data-theme", isDark ? "dark" : "light");
-
-    if (isDark) {
-      this.accentColorInput.value = darkModeSettings.accentColor!;
-    } else {
-      this.accentColorInput.value = defaultSettings.accentColor;
-    }
-
     this.updateAllPreviews();
   }
 

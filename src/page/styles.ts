@@ -26,6 +26,7 @@ export const baseStyles = `
     --search-bg: rgba(255, 255, 255, 0.2);
     --hover-bg: #f0f0f0;
     --selected-bg: #f0f0f0;
+    --accent-color: #0060df;
   }
 
   [data-theme="dark"] {
@@ -174,9 +175,15 @@ export function applyStyles(settings: ZenTabSettings) {
     document.body.style.backgroundImage = "none";
   }
 
+  // Set accent color CSS variable
+  document.documentElement.style.setProperty(
+    "--accent-color",
+    settings.accentColor
+  );
+
   style.textContent = `
     .selected {
-      outline-color: ${settings.accentColor} !important;
+      outline-color: var(--accent-color) !important;
     }
     #mode-indicator {
       margin-bottom: 10px;

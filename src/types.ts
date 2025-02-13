@@ -27,7 +27,3 @@ export const defaultSettings: ZenTabSettings = {
   showFavicon: true,
   themeMode: "system",
 };
-
-export const darkModeSettings: Partial<ZenTabSettings> = {
-  accentColor: "#4a9eff",
-};
