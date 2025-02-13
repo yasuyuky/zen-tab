@@ -3,7 +3,7 @@ import { ZenTabSettings, defaultSettings, ThemeMode } from "../types";
 export async function loadSettings(): Promise<ZenTabSettings> {
   const [syncResult, localResult] = await Promise.all([
     browser.storage.sync.get({
-      pinnedColor: defaultSettings.pinnedColor,
+      accentColor: defaultSettings.accentColor,
       showFavicon: defaultSettings.showFavicon,
       themeMode: defaultSettings.themeMode,
     }),
@@ -176,7 +176,7 @@ export function applyStyles(settings: ZenTabSettings) {
 
   style.textContent = `
     .selected {
-      outline-color: ${settings.pinnedColor} !important;
+      outline-color: ${settings.accentColor} !important;
     }
     #mode-indicator {
       margin-bottom: 10px;

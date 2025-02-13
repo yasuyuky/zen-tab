@@ -6,7 +6,7 @@ import {
 } from "../types";
 
 class OptionsManager {
-  private pinnedColorInput: HTMLInputElement;
+  private accentColorInput: HTMLInputElement;
   private saveButton: HTMLButtonElement;
   private backgroundUploader: HTMLInputElement;
   private clearBackgroundButton: HTMLButtonElement;
@@ -15,8 +15,8 @@ class OptionsManager {
   private backgroundImageData: string = "";
 
   constructor() {
-    this.pinnedColorInput = document.getElementById(
-      "pinnedColor"
+    this.accentColorInput = document.getElementById(
+      "accentColor"
     ) as HTMLInputElement;
     this.saveButton = document.getElementById("save") as HTMLButtonElement;
     this.backgroundUploader = document.getElementById(
@@ -87,9 +87,9 @@ class OptionsManager {
     document.body.setAttribute("data-theme", isDark ? "dark" : "light");
 
     if (isDark) {
-      this.pinnedColorInput.value = darkModeSettings.pinnedColor!;
+      this.accentColorInput.value = darkModeSettings.accentColor!;
     } else {
-      this.pinnedColorInput.value = defaultSettings.pinnedColor;
+      this.accentColorInput.value = defaultSettings.accentColor;
     }
 
     this.updateAllPreviews();
@@ -101,8 +101,8 @@ class OptionsManager {
     this.updateInputs(settings);
 
     // Add event listeners
-    this.pinnedColorInput.addEventListener("input", () =>
-      this.updatePreview("pinnedColor")
+    this.accentColorInput.addEventListener("input", () =>
+      this.updatePreview("accentColor")
     );
     this.saveButton.addEventListener("click", () => this.saveSettings());
 
@@ -123,7 +123,7 @@ class OptionsManager {
   private async loadSettings(): Promise<ZenTabSettings> {
     const [syncResult, localResult] = await Promise.all([
       browser.storage.sync.get({
-        pinnedColor: defaultSettings.pinnedColor,
+        accentColor: defaultSettings.accentColor,
         showFavicon: defaultSettings.showFavicon,
         themeMode: defaultSettings.themeMode,
       }),
@@ -138,13 +138,13 @@ class OptionsManager {
   }
 
   private updateInputs(settings: ZenTabSettings) {
-    this.pinnedColorInput.value = settings.pinnedColor;
+    this.accentColorInput.value = settings.accentColor;
     this.backgroundImageData = settings.backgroundImage;
     this.showFaviconInput.checked = settings.showFavicon;
     this.themeModeSelect.value = settings.themeMode;
   }
 
-  private updatePreview(type: "pinnedColor") {
+  private updatePreview(type: "accentColor") {
     const preview = document.getElementById(`${type}Preview`);
     if (preview) {
       const input = this[`${type}Input`] as HTMLInputElement;
@@ -153,12 +153,12 @@ class OptionsManager {
   }
 
   private updateAllPreviews() {
-    this.updatePreview("pinnedColor");
+    this.updatePreview("accentColor");
   }
 
   private async saveSettings() {
     const syncSettings = {
-      pinnedColor: this.pinnedColorInput.value,
+      accentColor: this.accentColorInput.value,
       showFavicon: this.showFaviconInput.checked,
       themeMode: this.themeModeSelect.value as ThemeMode,
     };
