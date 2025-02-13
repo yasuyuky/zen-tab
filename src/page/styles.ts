@@ -3,9 +3,7 @@ import { ZenTabSettings, defaultSettings, ThemeMode } from "../types";
 export async function loadSettings(): Promise<ZenTabSettings> {
   const [syncResult, localResult] = await Promise.all([
     browser.storage.sync.get({
-      selectedColor: defaultSettings.selectedColor,
       pinnedColor: defaultSettings.pinnedColor,
-      hoverColor: defaultSettings.hoverColor,
       showFavicon: defaultSettings.showFavicon,
       themeMode: defaultSettings.themeMode,
     }),
@@ -26,6 +24,8 @@ export const baseStyles = `
     --border-color: #cccccc;
     --container-bg: rgba(255, 255, 255, 0.1);
     --search-bg: rgba(255, 255, 255, 0.2);
+    --hover-bg: #f0f0f0;
+    --selected-bg: #f0f0f0;
   }
 
   [data-theme="dark"] {
@@ -34,6 +34,8 @@ export const baseStyles = `
     --border-color: #404040;
     --container-bg: rgba(0, 0, 0, 0.2);
     --search-bg: rgba(0, 0, 0, 0.3);
+    --hover-bg: #2b2b2b;
+    --selected-bg: #2b2b2b;
   }
 
   body {
@@ -96,7 +98,7 @@ export const baseStyles = `
     border-radius: 4px;
   }
   .tab-item:hover {
-    background-color: #f0f0f0;
+    background-color: var(--hover-bg);
   }
   .tab-favicon {
     margin-right: 8px;
@@ -120,8 +122,8 @@ export const baseStyles = `
     opacity: 1;
   }
   .selected {
-    background-color: #f0f0f0;
-    outline: 2px solid #0060df;
+    background-color: var(--selected-bg);
+    outline: 2px solid var(--border-color);
   }
 `;
 
@@ -171,13 +173,10 @@ export function applyStyles(settings: ZenTabSettings) {
   } else {
     document.body.style.backgroundImage = "none";
   }
+
   style.textContent = `
-    .tab-item:hover {
-      background-color: ${settings.hoverColor} !important;
-    }
     .selected {
-      background-color: ${settings.selectedColor} !important;
-      outline: 2px solid ${settings.pinnedColor} !important;
+      outline-color: ${settings.pinnedColor} !important;
     }
     #mode-indicator {
       margin-bottom: 10px;

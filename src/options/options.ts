@@ -6,9 +6,7 @@ import {
 } from "../types";
 
 class OptionsManager {
-  private selectedColorInput: HTMLInputElement;
   private pinnedColorInput: HTMLInputElement;
-  private hoverColorInput: HTMLInputElement;
   private saveButton: HTMLButtonElement;
   private backgroundUploader: HTMLInputElement;
   private clearBackgroundButton: HTMLButtonElement;
@@ -17,14 +15,8 @@ class OptionsManager {
   private backgroundImageData: string = "";
 
   constructor() {
-    this.selectedColorInput = document.getElementById(
-      "selectedColor"
-    ) as HTMLInputElement;
     this.pinnedColorInput = document.getElementById(
       "pinnedColor"
-    ) as HTMLInputElement;
-    this.hoverColorInput = document.getElementById(
-      "hoverColor"
     ) as HTMLInputElement;
     this.saveButton = document.getElementById("save") as HTMLButtonElement;
     this.backgroundUploader = document.getElementById(
@@ -95,13 +87,9 @@ class OptionsManager {
     document.body.setAttribute("data-theme", isDark ? "dark" : "light");
 
     if (isDark) {
-      this.selectedColorInput.value = darkModeSettings.selectedColor!;
       this.pinnedColorInput.value = darkModeSettings.pinnedColor!;
-      this.hoverColorInput.value = darkModeSettings.hoverColor!;
     } else {
-      this.selectedColorInput.value = defaultSettings.selectedColor;
       this.pinnedColorInput.value = defaultSettings.pinnedColor;
-      this.hoverColorInput.value = defaultSettings.hoverColor;
     }
 
     this.updateAllPreviews();
@@ -113,14 +101,8 @@ class OptionsManager {
     this.updateInputs(settings);
 
     // Add event listeners
-    this.selectedColorInput.addEventListener("input", () =>
-      this.updatePreview("selectedColor")
-    );
     this.pinnedColorInput.addEventListener("input", () =>
       this.updatePreview("pinnedColor")
-    );
-    this.hoverColorInput.addEventListener("input", () =>
-      this.updatePreview("hoverColor")
     );
     this.saveButton.addEventListener("click", () => this.saveSettings());
 
@@ -141,9 +123,7 @@ class OptionsManager {
   private async loadSettings(): Promise<ZenTabSettings> {
     const [syncResult, localResult] = await Promise.all([
       browser.storage.sync.get({
-        selectedColor: defaultSettings.selectedColor,
         pinnedColor: defaultSettings.pinnedColor,
-        hoverColor: defaultSettings.hoverColor,
         showFavicon: defaultSettings.showFavicon,
         themeMode: defaultSettings.themeMode,
       }),
@@ -158,15 +138,13 @@ class OptionsManager {
   }
 
   private updateInputs(settings: ZenTabSettings) {
-    this.selectedColorInput.value = settings.selectedColor;
     this.pinnedColorInput.value = settings.pinnedColor;
-    this.hoverColorInput.value = settings.hoverColor;
     this.backgroundImageData = settings.backgroundImage;
     this.showFaviconInput.checked = settings.showFavicon;
     this.themeModeSelect.value = settings.themeMode;
   }
 
-  private updatePreview(type: "selectedColor" | "pinnedColor" | "hoverColor") {
+  private updatePreview(type: "pinnedColor") {
     const preview = document.getElementById(`${type}Preview`);
     if (preview) {
       const input = this[`${type}Input`] as HTMLInputElement;
@@ -175,16 +153,12 @@ class OptionsManager {
   }
 
   private updateAllPreviews() {
-    this.updatePreview("selectedColor");
     this.updatePreview("pinnedColor");
-    this.updatePreview("hoverColor");
   }
 
   private async saveSettings() {
     const syncSettings = {
-      selectedColor: this.selectedColorInput.value,
       pinnedColor: this.pinnedColorInput.value,
-      hoverColor: this.hoverColorInput.value,
       showFavicon: this.showFaviconInput.checked,
       themeMode: this.themeModeSelect.value as ThemeMode,
     };
