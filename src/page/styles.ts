@@ -90,6 +90,18 @@ export const baseStyles = `
     border-bottom: 2px solid var(--border-color);
     font-size: 14px;
     color: var(--text-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .group-close {
+    padding: 4px 8px;
+    cursor: pointer;
+    opacity: 0.6;
+    font-size: 16px;
+  }
+  .group-close:hover {
+    opacity: 1;
   }
   .tab-item {
     display: flex;

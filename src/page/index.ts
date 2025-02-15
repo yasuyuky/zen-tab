@@ -229,7 +229,20 @@ class TabManager {
 
       const titleElement = document.createElement("div");
       titleElement.className = "group-title";
-      titleElement.textContent = group.title;
+
+      const titleTextElement = document.createElement("span");
+      titleTextElement.textContent = group.title;
+      titleElement.appendChild(titleTextElement);
+
+      const closeGroupButton = document.createElement("span");
+      closeGroupButton.className = "group-close";
+      closeGroupButton.textContent = "×";
+      closeGroupButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.closeTabGroup(group);
+      });
+      titleElement.appendChild(closeGroupButton);
+
       groupElement.appendChild(titleElement);
 
       group.tabs.forEach((tab) => {
@@ -286,6 +299,17 @@ class TabManager {
       await browser.tabs.update(tab.id, { active: true });
       await browser.windows.update(tab.windowId, { focused: true });
       window.close();
+    }
+  }
+
+  private async closeTabGroup(group: TabGroup) {
+    const nonPinnedTabs = group.tabs.filter((tab) => !tab.pinned);
+    if (nonPinnedTabs.length > 0) {
+      const tabIds = nonPinnedTabs
+        .map((tab) => tab.id)
+        .filter((id): id is number => id !== undefined);
+      await browser.tabs.remove(tabIds);
+      await this.updateTabs(this.searchInput.value);
     }
   }
 
