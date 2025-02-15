@@ -234,14 +234,17 @@ class TabManager {
       titleTextElement.textContent = group.title;
       titleElement.appendChild(titleTextElement);
 
-      const closeGroupButton = document.createElement("span");
-      closeGroupButton.className = "group-close";
-      closeGroupButton.textContent = "×";
-      closeGroupButton.addEventListener("click", (e) => {
-        e.stopPropagation();
-        this.closeTabGroup(group);
-      });
-      titleElement.appendChild(closeGroupButton);
+      const hasNonPinnedTabs = group.tabs.some((tab) => !tab.pinned);
+      if (hasNonPinnedTabs) {
+        const closeGroupButton = document.createElement("span");
+        closeGroupButton.className = "group-close";
+        closeGroupButton.textContent = "×";
+        closeGroupButton.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.closeTabGroup(group);
+        });
+        titleElement.appendChild(closeGroupButton);
+      }
 
       groupElement.appendChild(titleElement);
 
