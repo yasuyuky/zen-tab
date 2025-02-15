@@ -311,17 +311,6 @@ class TabManager {
     await this.updateTabs(this.searchInput.value);
   }
 
-  private async closeTabGroup(group: TabGroup) {
-    const nonPinnedTabs = group.tabs.filter((tab) => !tab.pinned);
-    if (nonPinnedTabs.length > 0) {
-      const tabIds = nonPinnedTabs
-        .map((tab) => tab.id)
-        .filter((id): id is number => id !== undefined);
-      await browser.tabs.remove(tabIds);
-      await this.updateTabs(this.searchInput.value);
-    }
-  }
-
   private async closeTab(tab: browser.tabs.Tab) {
     if (tab.id) {
       // Get the current index before removing the tab
