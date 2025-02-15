@@ -234,14 +234,14 @@ class TabManager {
       titleTextElement.textContent = group.title;
       titleElement.appendChild(titleTextElement);
 
-      const hasNonPinnedTabs = group.tabs.some((tab) => !tab.pinned);
-      if (hasNonPinnedTabs) {
+      const nonPinnedTabs = group.tabs.filter((tab) => !tab.pinned);
+      if (nonPinnedTabs.length > 0) {
         const closeGroupButton = document.createElement("span");
         closeGroupButton.className = "group-close";
         closeGroupButton.textContent = "×";
         closeGroupButton.addEventListener("click", (e) => {
           e.stopPropagation();
-          this.closeTabGroup(group);
+          this.closeTabs(nonPinnedTabs);
         });
         titleElement.appendChild(closeGroupButton);
       }
@@ -303,6 +303,12 @@ class TabManager {
       await browser.windows.update(tab.windowId, { focused: true });
       window.close();
     }
+  }
+
+  private async closeTabs(tabs: browser.tabs.Tab[]) {
+    const tabIds = tabs.map((tab) => tab.id).filter((id): id is number => !!id);
+    await browser.tabs.remove(tabIds);
+    await this.updateTabs(this.searchInput.value);
   }
 
   private async closeTabGroup(group: TabGroup) {
