@@ -109,6 +109,7 @@ export const baseStyles = `
     padding: 8px;
     cursor: pointer;
     border-radius: 4px;
+    min-height: 20px; /* Ensures consistent height */
   }
   .tab-item:hover {
     background-color: var(--hover-bg);
@@ -126,10 +127,12 @@ export const baseStyles = `
   }
   .tab-close {
     padding: 4px 8px;
-    margin-left: 8px;
+    margin: -4px -8px -4px 0; /* Negative margin to prevent affecting layout */
     cursor: pointer;
     opacity: 0.6;
     font-size: 16px;
+    display: flex;
+    align-items: center;
   }
   .tab-close:hover {
     opacity: 1;
