@@ -19,6 +19,7 @@ export interface ZenTabSettings {
   backgroundImage: string;
   showFavicon: boolean;
   themeMode: ThemeMode;
+  enableHistorySearch: boolean;
 }
 
 export const defaultSettings: ZenTabSettings = {
@@ -26,4 +27,5 @@ export const defaultSettings: ZenTabSettings = {
   backgroundImage: "",
   showFavicon: true,
   themeMode: "system",
+  enableHistorySearch: false,
 };
