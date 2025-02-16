@@ -1,7 +1,4 @@
 import { ZenTabSettings, ThemeMode } from "../types";
-import { loadSettings } from "../utils";
-
-export { loadSettings };
 
 export const baseStyles = `
   :root {

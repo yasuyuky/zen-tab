@@ -26,9 +26,9 @@ class TabManager {
 
   private async init() {
     // Load and apply custom styles
-    const { loadSettings, applyStyles } = await import("./styles");
+    const { applyStyles } = await import("./styles");
+    const { loadSettings } = await import("../utils");
     const settings = await loadSettings();
-    console.log("Applying settings", settings);
     applyStyles(settings);
     this.showFavicon = settings.showFavicon;
 
@@ -413,7 +413,6 @@ class TabManager {
     const modeIndicator = document.getElementById("mode-indicator");
     if (!modeIndicator) return;
 
-    console.log("Updating mode indicator", this.availableModes);
     // Generate indicators HTML
     modeIndicator.innerHTML = this.availableModes
       .map(
