@@ -10,8 +10,10 @@ class TabManager {
     { id: "normal", label: "Tabs" },
     { id: "pinned", label: "Pinned" },
     { id: "audible", label: "Audible" },
+    { id: "history", label: "History" },
   ] as const;
 
+  private availableModes: (typeof this.modes)[number][] = [];
   private searchMode: (typeof this.modes)[number]["id"] = "normal";
 
   constructor() {
@@ -26,8 +28,14 @@ class TabManager {
     // Load and apply custom styles
     const { loadSettings, applyStyles } = await import("./styles");
     const settings = await loadSettings();
+    console.log("Applying settings", settings);
     applyStyles(settings);
     this.showFavicon = settings.showFavicon;
+
+    // Set available modes based on settings
+    this.availableModes = settings.enableHistorySearch
+      ? [...this.modes]
+      : this.modes.filter((mode) => mode.id !== "history");
 
     // Listen for settings changes
     browser.storage.onChanged.addListener(async (changes, area) => {
@@ -36,13 +44,27 @@ class TabManager {
           (changes.selectedColor ||
             changes.pinnedColor ||
             changes.hoverColor ||
-            changes.showFavicon)) ||
+            changes.showFavicon ||
+            changes.enableHistorySearch)) ||
         (area === "local" && changes.backgroundImage)
       ) {
         const newSettings = await loadSettings();
         applyStyles(newSettings);
         if (changes.showFavicon) {
           this.showFavicon = newSettings.showFavicon;
+          this.updateTabs(this.searchInput.value);
+        }
+        if (changes.enableHistorySearch) {
+          this.availableModes = newSettings.enableHistorySearch
+            ? [...this.modes]
+            : this.modes.filter((mode) => mode.id !== "history");
+          if (
+            !newSettings.enableHistorySearch &&
+            this.searchMode === "history"
+          ) {
+            this.searchMode = "normal";
+          }
+          this.updateModeIndicator();
           this.updateTabs(this.searchInput.value);
         }
       }
@@ -180,39 +202,58 @@ class TabManager {
     const allTabs = await browser.tabs.query({});
 
     // Filter out current tab and apply mode-specific filtering
-    const filteredTabs = allTabs
-      .filter((tab) => tab.id !== currentTab.id)
-      .filter((tab) => {
-        switch (this.searchMode) {
-          case "normal":
-            return !tab.incognito;
-          case "pinned":
-            return tab.pinned;
-          case "audible":
-            return tab.audible;
-        }
-      });
+    let items: browser.tabs.Tab[] | browser.history.HistoryItem[] = [];
 
-    const groups = this.groupTabs(filteredTabs, searchQuery);
+    if (this.searchMode === "history") {
+      // Search in browser history
+      if (searchQuery) {
+        const historyItems = await browser.history.search({
+          text: searchQuery,
+          startTime: 0,
+          maxResults: 100,
+        });
+        items = historyItems;
+      }
+    } else {
+      items = allTabs
+        .filter((tab) => tab.id !== currentTab.id)
+        .filter((tab) => {
+          switch (this.searchMode) {
+            case "normal":
+              return !tab.incognito;
+            case "pinned":
+              return tab.pinned;
+            case "audible":
+              return tab.audible;
+            default:
+              return false;
+          }
+        });
+    }
+
+    const groups = this.groupTabs(items, searchQuery);
     this.renderGroups(groups);
   }
 
-  private groupTabs(tabs: browser.tabs.Tab[], searchQuery: string): TabGroup[] {
+  private groupTabs(
+    items: browser.tabs.Tab[] | browser.history.HistoryItem[],
+    searchQuery: string
+  ): TabGroup[] {
     const grouping: TabGrouping = {};
 
-    // Filter and group tabs
-    tabs.forEach((tab) => {
-      if (!tab.url || !tab.title) return;
+    // Filter and group items
+    items.forEach((item) => {
+      if (!item.url || !item.title) return;
 
-      if (searchQuery && !this.matchesSearch(tab, searchQuery)) return;
+      if (searchQuery && !this.matchesSearch(item, searchQuery)) return;
 
-      const url = new URL(tab.url);
+      const url = new URL(item.url);
       const domain = url.hostname;
 
       if (!grouping[domain]) {
         grouping[domain] = [];
       }
-      grouping[domain].push(tab);
+      grouping[domain].push(item as browser.tabs.Tab);
     });
 
     // Convert grouping to array of TabGroup
@@ -224,11 +265,14 @@ class TabManager {
       .sort((a, b) => a.title.localeCompare(b.title));
   }
 
-  private matchesSearch(tab: browser.tabs.Tab, query: string): boolean {
+  private matchesSearch(
+    item: browser.tabs.Tab | browser.history.HistoryItem,
+    query: string
+  ): boolean {
     const searchStr = query.toLowerCase();
     return (
-      !!tab.title?.toLowerCase().includes(searchStr) ||
-      !!tab.url?.toLowerCase().includes(searchStr)
+      !!item.title?.toLowerCase().includes(searchStr) ||
+      !!item.url?.toLowerCase().includes(searchStr)
     );
   }
 
@@ -283,7 +327,14 @@ class TabManager {
         const titleSpan = document.createElement("span");
         titleSpan.className = "tab-title";
         titleSpan.textContent = tab.title || "";
-        tabElement.addEventListener("click", () => this.switchToTab(tab));
+        tabElement.addEventListener("click", () => {
+          if (this.searchMode === "history") {
+            browser.tabs.create({ url: tab.url });
+            window.close();
+          } else {
+            this.switchToTab(tab);
+          }
+        });
 
         tabElement.appendChild(titleSpan);
 
@@ -346,11 +397,11 @@ class TabManager {
     }
   }
   private toggleSearchMode() {
-    const currentIndex = this.modes.findIndex(
+    const currentIndex = this.availableModes.findIndex(
       ({ id }) => id === this.searchMode
     );
-    const nextIndex = (currentIndex + 1) % this.modes.length;
-    this.searchMode = this.modes[nextIndex].id as typeof this.searchMode;
+    const nextIndex = (currentIndex + 1) % this.availableModes.length;
+    this.searchMode = this.availableModes[nextIndex].id;
 
     console.log(`Switched to ${this.searchMode} mode`);
     this.updateTabs(this.searchInput.value);
@@ -362,8 +413,9 @@ class TabManager {
     const modeIndicator = document.getElementById("mode-indicator");
     if (!modeIndicator) return;
 
+    console.log("Updating mode indicator", this.availableModes);
     // Generate indicators HTML
-    modeIndicator.innerHTML = this.modes
+    modeIndicator.innerHTML = this.availableModes
       .map(
         ({ id, label }) => `
         <span id="indicator-${id}" class="${
@@ -376,7 +428,7 @@ class TabManager {
       .join("");
 
     // Add click handlers
-    this.modes.forEach(({ id }) => {
+    this.availableModes.forEach(({ id }) => {
       const indicator = document.getElementById(`indicator-${id}`);
       indicator?.addEventListener("click", () => {
         this.searchMode = id as typeof this.searchMode;

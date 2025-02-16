@@ -1,21 +1,7 @@
-import { ZenTabSettings, defaultSettings, ThemeMode } from "../types";
+import { ZenTabSettings, ThemeMode } from "../types";
+import { loadSettings } from "../utils";
 
-export async function loadSettings(): Promise<ZenTabSettings> {
-  const [syncResult, localResult] = await Promise.all([
-    browser.storage.sync.get({
-      accentColor: defaultSettings.accentColor,
-      showFavicon: defaultSettings.showFavicon,
-      themeMode: defaultSettings.themeMode,
-    }),
-    browser.storage.local.get({
-      backgroundImage: defaultSettings.backgroundImage,
-    }),
-  ]);
-  return {
-    ...syncResult,
-    backgroundImage: localResult.backgroundImage,
-  } as ZenTabSettings;
-}
+export { loadSettings };
 
 export const baseStyles = `
   :root {
