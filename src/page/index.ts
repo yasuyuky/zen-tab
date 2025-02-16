@@ -235,6 +235,26 @@ class TabManager {
     this.renderGroups(groups);
   }
 
+  private formatDate(date: Date): string {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date >= today) {
+      return "Today";
+    } else if (date >= yesterday) {
+      return "Yesterday";
+    } else {
+      return date.toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+  }
+
   private groupTabs(
     items: browser.tabs.Tab[] | browser.history.HistoryItem[],
     searchQuery: string
@@ -247,22 +267,58 @@ class TabManager {
 
       if (searchQuery && !this.matchesSearch(item, searchQuery)) return;
 
-      const url = new URL(item.url);
-      const domain = url.hostname;
-
-      if (!grouping[domain]) {
-        grouping[domain] = [];
+      let groupKey: string;
+      if (this.searchMode === "history" && this.isHistoryItem(item)) {
+        const visitDate = new Date(item.lastVisitTime || Date.now());
+        groupKey = this.formatDate(visitDate);
+      } else {
+        const url = new URL(item.url);
+        groupKey = url.hostname;
       }
-      grouping[domain].push(item as browser.tabs.Tab);
+
+      if (!grouping[groupKey]) {
+        grouping[groupKey] = [];
+      }
+      grouping[groupKey].push(item as browser.tabs.Tab);
     });
 
     // Convert grouping to array of TabGroup
-    return Object.entries(grouping)
-      .map(([domain, tabs]) => ({
-        title: domain,
-        tabs: tabs,
-      }))
-      .sort((a, b) => a.title.localeCompare(b.title));
+    const groups = Object.entries(grouping).map(([key, tabs]) => ({
+      title: key,
+      tabs: tabs,
+    }));
+
+    // Sort groups
+    if (this.searchMode === "history") {
+      // For history mode, sort by date (most recent first)
+      const dateOrder = ["Today", "Yesterday"];
+      return groups.sort((a, b) => {
+        const aIndex = dateOrder.indexOf(a.title);
+        const bIndex = dateOrder.indexOf(b.title);
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return this.getVisitTime(b.tabs[0]) - this.getVisitTime(a.tabs[0]);
+      });
+    } else {
+      // For other modes, sort by domain alphabetically
+      return groups.sort((a, b) => a.title.localeCompare(b.title));
+    }
+  }
+
+  private isHistoryItem(
+    item: browser.tabs.Tab | browser.history.HistoryItem
+  ): item is browser.history.HistoryItem {
+    return "lastVisitTime" in item;
+  }
+
+  private getVisitTime(
+    item: browser.tabs.Tab | browser.history.HistoryItem
+  ): number {
+    if (this.isHistoryItem(item)) {
+      return item.lastVisitTime || Date.now();
+    }
+    return Date.now();
   }
 
   private matchesSearch(
