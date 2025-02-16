@@ -151,10 +151,24 @@ class TabManager {
     this.selectedTabElement = this.allTabElements[index];
     if (this.selectedTabElement) {
       this.selectedTabElement.classList.add("selected");
-      this.selectedTabElement.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
+
+      const scrollContainer = document.querySelector(".scroll-container");
+      if (scrollContainer) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const elementRect = this.selectedTabElement.getBoundingClientRect();
+
+        if (elementRect.bottom > containerRect.bottom) {
+          scrollContainer.scrollBy({
+            top: elementRect.bottom - containerRect.bottom,
+            behavior: "smooth",
+          });
+        } else if (elementRect.top < containerRect.top) {
+          scrollContainer.scrollBy({
+            top: elementRect.top - containerRect.top,
+            behavior: "smooth",
+          });
+        }
+      }
     }
   }
 

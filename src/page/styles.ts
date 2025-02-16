@@ -74,8 +74,17 @@ export const baseStyles = `
     font-size: 16px;
     box-sizing: border-box;
   }
+  .scroll-container {
+    position: fixed;
+    top: 120px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+  }
   #tab-groups {
-    margin-top: 120px;
+    max-width: 800px;
+    margin: 0 auto;
     padding: 0 16px;
     background: var(--container-bg);
     backdrop-filter: blur(4px);
