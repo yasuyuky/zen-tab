@@ -1,4 +1,5 @@
-import { ZenTabSettings, defaultSettings, ThemeMode } from "../types";
+import { ZenTabSettings, ThemeMode } from "../types";
+import { loadSettings } from "../utils";
 
 class OptionsManager {
   private accentColorInput: HTMLInputElement;
@@ -6,6 +7,7 @@ class OptionsManager {
   private backgroundUploader: HTMLInputElement;
   private clearBackgroundButton: HTMLButtonElement;
   private showFaviconInput: HTMLInputElement;
+  private enableHistorySearchInput: HTMLInputElement;
   private themeModeSelect: HTMLSelectElement;
   private backgroundImageData: string = "";
 
@@ -22,6 +24,9 @@ class OptionsManager {
     ) as HTMLButtonElement;
     this.showFaviconInput = document.getElementById(
       "showFavicon"
+    ) as HTMLInputElement;
+    this.enableHistorySearchInput = document.getElementById(
+      "enableHistorySearch"
     ) as HTMLInputElement;
     this.themeModeSelect = document.getElementById(
       "themeMode"
@@ -85,7 +90,7 @@ class OptionsManager {
 
   private async init() {
     // Load current settings
-    const settings = await this.loadSettings();
+    const settings = await loadSettings();
     this.updateInputs(settings);
 
     // Add event listeners
@@ -108,27 +113,11 @@ class OptionsManager {
     this.updateAllPreviews();
   }
 
-  private async loadSettings(): Promise<ZenTabSettings> {
-    const [syncResult, localResult] = await Promise.all([
-      browser.storage.sync.get({
-        accentColor: defaultSettings.accentColor,
-        showFavicon: defaultSettings.showFavicon,
-        themeMode: defaultSettings.themeMode,
-      }),
-      browser.storage.local.get({
-        backgroundImage: defaultSettings.backgroundImage,
-      }),
-    ]);
-    return {
-      ...syncResult,
-      backgroundImage: localResult.backgroundImage,
-    } as ZenTabSettings;
-  }
-
   private updateInputs(settings: ZenTabSettings) {
     this.accentColorInput.value = settings.accentColor;
     this.backgroundImageData = settings.backgroundImage;
     this.showFaviconInput.checked = settings.showFavicon;
+    this.enableHistorySearchInput.checked = settings.enableHistorySearch;
     this.themeModeSelect.value = settings.themeMode;
   }
 
@@ -148,6 +137,7 @@ class OptionsManager {
     const syncSettings = {
       accentColor: this.accentColorInput.value,
       showFavicon: this.showFaviconInput.checked,
+      enableHistorySearch: this.enableHistorySearchInput.checked,
       themeMode: this.themeModeSelect.value as ThemeMode,
     };
 
