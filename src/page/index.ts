@@ -86,7 +86,7 @@ class TabManager {
     });
 
     // Listen for keyboard shortcuts
-    document.addEventListener("keydown", (e) => {
+    document.addEventListener("keydown", async (e) => {
       if (e.key === "Escape") {
         window.close();
       } else if (e.key === "Tab") {
@@ -130,8 +130,25 @@ class TabManager {
         this.selectedTabElement
       ) {
         e.preventDefault();
-        if (!this.selectedTabElement.classList.contains("pinned")) {
-          const tabId = this.selectedTabElement.getAttribute("data-tab-id");
+        const selectedTab = this.selectedTabElement;
+        if (!selectedTab) return;
+
+        if (this.searchMode === "history") {
+          const url = selectedTab.querySelector(".tab-url")?.textContent;
+          if (url) {
+            await browser.history.deleteUrl({ url });
+            await this.updateTabs(this.searchInput.value);
+
+            // Select next/previous item
+            const currentIndex = this.allTabElements.indexOf(selectedTab);
+            if (currentIndex < this.allTabElements.length - 1) {
+              this.selectTabAtIndex(currentIndex + 1);
+            } else if (currentIndex > 0) {
+              this.selectTabAtIndex(currentIndex - 1);
+            }
+          }
+        } else if (!selectedTab.classList.contains("pinned")) {
+          const tabId = selectedTab.getAttribute("data-tab-id");
           if (tabId) {
             this.closeTab({ id: parseInt(tabId) } as browser.tabs.Tab);
           }
@@ -497,6 +514,7 @@ class TabManager {
       }
     }
   }
+
   private toggleSearchMode() {
     const currentIndex = this.availableModes.findIndex(
       ({ id }) => id === this.searchMode
