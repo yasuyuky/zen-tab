@@ -348,16 +348,29 @@ class TabManager {
       titleTextElement.textContent = group.title;
       titleElement.appendChild(titleTextElement);
 
-      const nonPinnedTabs = group.tabs.filter((tab) => !tab.pinned);
-      if (nonPinnedTabs.length > 0) {
+      if (this.searchMode === "history") {
+        // Add delete button for history group
         const closeGroupButton = document.createElement("span");
         closeGroupButton.className = "group-close";
         closeGroupButton.textContent = "×";
-        closeGroupButton.addEventListener("click", (e) => {
+        closeGroupButton.addEventListener("click", async (e) => {
           e.stopPropagation();
-          this.closeTabs(nonPinnedTabs);
+          await this.deleteHistoryItems(group.tabs);
+          this.updateTabs(this.searchInput.value);
         });
         titleElement.appendChild(closeGroupButton);
+      } else {
+        const nonPinnedTabs = group.tabs.filter((tab) => !tab.pinned);
+        if (nonPinnedTabs.length > 0) {
+          const closeGroupButton = document.createElement("span");
+          closeGroupButton.className = "group-close";
+          closeGroupButton.textContent = "×";
+          closeGroupButton.addEventListener("click", (e) => {
+            e.stopPropagation();
+            this.closeTabs(nonPinnedTabs);
+          });
+          titleElement.appendChild(closeGroupButton);
+        }
       }
 
       groupElement.appendChild(titleElement);
@@ -407,13 +420,19 @@ class TabManager {
           }
         });
 
-        if (!tab.pinned) {
+        // Show close button for history items or non-pinned tabs
+        if (this.searchMode === "history" || !tab.pinned) {
           const closeButton = document.createElement("span");
           closeButton.className = "tab-close";
           closeButton.textContent = "×";
-          closeButton.addEventListener("click", (e) => {
+          closeButton.addEventListener("click", async (e) => {
             e.stopPropagation();
-            this.closeTab(tab);
+            if (this.searchMode === "history") {
+              await this.deleteHistoryItems([tab]);
+              this.updateTabs(this.searchInput.value);
+            } else {
+              this.closeTab(tab);
+            }
           });
           tabElement.appendChild(closeButton);
         }
@@ -437,6 +456,19 @@ class TabManager {
       await browser.windows.update(tab.windowId, { focused: true });
       window.close();
     }
+  }
+
+  private async deleteHistoryItems(
+    items: (browser.tabs.Tab | browser.history.HistoryItem)[]
+  ) {
+    const historyItems = items.filter(this.isHistoryItem);
+    const itemsWithUrl = historyItems.filter(
+      (item): item is browser.history.HistoryItem & { url: string } =>
+        typeof item.url === "string"
+    );
+    await Promise.all(
+      itemsWithUrl.map((item) => browser.history.deleteUrl({ url: item.url }))
+    );
   }
 
   private async closeTabs(tabs: browser.tabs.Tab[]) {
