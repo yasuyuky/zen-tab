@@ -380,9 +380,24 @@ class TabManager {
           tab.windowId?.toString() || ""
         );
 
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "tab-content";
+
         const titleSpan = document.createElement("span");
         titleSpan.className = "tab-title";
         titleSpan.textContent = tab.title || "";
+
+        contentDiv.appendChild(titleSpan);
+
+        if (this.searchMode === "history") {
+          const urlSpan = document.createElement("div");
+          urlSpan.className = "tab-url";
+          urlSpan.textContent = tab.url || "";
+          contentDiv.appendChild(urlSpan);
+        }
+
+        tabElement.appendChild(contentDiv);
+
         tabElement.addEventListener("click", () => {
           if (this.searchMode === "history") {
             browser.tabs.create({ url: tab.url });
@@ -391,8 +406,6 @@ class TabManager {
             this.switchToTab(tab);
           }
         });
-
-        tabElement.appendChild(titleSpan);
 
         if (!tab.pinned) {
           const closeButton = document.createElement("span");

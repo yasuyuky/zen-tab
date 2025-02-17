@@ -117,6 +117,21 @@ export const baseStyles = `
     text-overflow: ellipsis;
     font-size: 14px;
   }
+
+  .tab-url {
+    color: var(--text-color);
+    opacity: 0.6;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .tab-content {
+    flex-grow: 1;
+    min-width: 0;
+  }
   .tab-close {
     padding: 4px 8px;
     margin: -4px -8px -4px 0; /* Negative margin to prevent affecting layout */
