@@ -57,6 +57,10 @@ export const baseStyles = `
     font-size: 16px;
     box-sizing: border-box;
   }
+  #search:focus {
+    outline: 2px solid var(--accent-color);
+    border-color: var(--accent-color);
+  }
   .scroll-container {
     position: fixed;
     top: 120px;
