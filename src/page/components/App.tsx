@@ -182,45 +182,51 @@ export const App: React.FC = () => {
     await updateTabs(searchQuery);
   };
 
-  const toggleSearchMode = () => {
+  const toggleSearchMode = useCallback(() => {
     const currentIndex = availableModes.findIndex(({ id }) => id === searchMode);
     const nextIndex = (currentIndex + 1) % availableModes.length;
+    console.log(searchMode, availableModes, currentIndex, nextIndex, availableModes[nextIndex].id);
     setSearchMode(availableModes[nextIndex].id);
-  };
+  }, [availableModes, searchMode]);
 
   useEffect(() => {
-    const initializeSettings = async () => {
+    const init = async () => {
       const settings = await loadSettings();
       setShowFavicon(settings.showFavicon);
-      setAvailableModes(settings.enableHistorySearch ? modes : modes.filter(m => m.id !== "history"));
-    };
+      const newAvailableModes = settings.enableHistorySearch ? modes : modes.filter(m => m.id !== "history");
+      setAvailableModes(newAvailableModes);
 
-    initializeSettings();
-    updateTabs();
+      // Wait for state update to complete
+      await new Promise(resolve => setTimeout(resolve, 0));
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) window.close();
-    };
+      const handleVisibilityChange = () => {
+        if (document.hidden) window.close();
+      };
 
-    const handleKeyDown = (e: Event) => {
-      if (e instanceof KeyboardEvent) {
-        if (e.key === "Escape") {
-          window.close();
-        } else if (e.key === "Tab") {
-          e.preventDefault();
-          toggleSearchMode();
+      const handleKeyDown = (e: Event) => {
+        if (e instanceof KeyboardEvent) {
+          if (e.key === "Escape") {
+            window.close();
+          } else if (e.key === "Tab" && newAvailableModes.length > 0) {
+            e.preventDefault();
+            toggleSearchMode();
+          }
         }
-      }
+      };
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      document.addEventListener("keydown", handleKeyDown);
+
+      updateTabs();
+
+      return () => {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        document.removeEventListener("keydown", handleKeyDown);
+      };
     };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+    init();
+  }, [toggleSearchMode, updateTabs]);
 
   useEffect(() => {
     updateTabs(searchQuery);
