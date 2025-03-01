@@ -1,6 +1,6 @@
-import { ZenTabSettings, ThemeMode } from "../types";
+import styled, { createGlobalStyle } from 'styled-components';
 
-export const baseStyles = `
+export const GlobalStyle = createGlobalStyle`
   :root {
     --bg-color: #ffffff;
     --text-color: #333333;
@@ -30,196 +30,156 @@ export const baseStyles = `
     background-color: var(--bg-color);
     color: var(--text-color);
   }
-  .search-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: var(--search-bg);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 16px 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  }
-  .search-inner {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 16px;
-  }
-  #search {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    border-radius: 4px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  #search:focus {
+`;
+
+export const SearchContainer = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--search-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 16px 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+`;
+
+export const SearchInner = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+`;
+
+export const SearchInput = styled.input`
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+
+  &:focus {
     outline: 2px solid var(--accent-color);
     border-color: var(--accent-color);
   }
-  .scroll-container {
-    position: fixed;
-    top: 120px;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    overflow-y: auto;
-  }
-  #tab-groups {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 16px;
-    background: var(--container-bg);
-    backdrop-filter: blur(4px);
-  }
-  .tab-group {
-    margin-bottom: 24px;
-  }
-  .group-title {
-    font-weight: bold;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--border-color);
-    font-size: 14px;
-    color: var(--text-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .group-close {
-    padding: 4px 8px;
-    cursor: pointer;
-    opacity: 0.6;
-    font-size: 16px;
-  }
-  .group-close:hover {
-    opacity: 1;
-  }
-  .tab-item {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 4px;
-    min-height: 20px; /* Ensures consistent height */
-  }
-  .tab-item:hover {
-    background-color: var(--hover-bg);
-  }
-  .tab-favicon {
-    margin-right: 8px;
-    flex-shrink: 0;
-  }
-  .tab-title {
-    flex-grow: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 14px;
-  }
+`;
 
-  .tab-url {
-    color: var(--text-color);
-    opacity: 0.6;
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 2px;
-  }
+export const ScrollContainer = styled.div`
+  position: fixed;
+  top: 120px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+`;
 
-  .tab-content {
-    flex-grow: 1;
-    min-width: 0;
-  }
-  .tab-close {
-    padding: 4px 8px;
-    margin: -4px -8px -4px 0; /* Negative margin to prevent affecting layout */
-    cursor: pointer;
-    opacity: 0.6;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-  }
-  .tab-close:hover {
+export const TabGroupsContainer = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 16px;
+  background: var(--container-bg);
+  backdrop-filter: blur(4px);
+`;
+
+export const TabGroupWrapper = styled.div`
+  margin-bottom: 24px;
+`;
+
+export const GroupTitle = styled.div`
+  font-weight: bold;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-color);
+  font-size: 14px;
+  color: var(--text-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+export const GroupCloseButton = styled.span`
+  padding: 4px 8px;
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 16px;
+
+  &:hover {
     opacity: 1;
-  }
-  .selected {
-    background-color: var(--selected-bg);
-    outline: 2px solid var(--border-color);
   }
 `;
 
-export function applyStyles(settings: ZenTabSettings) {
-  const styleId = "custom-styles";
-  let style = document.getElementById(styleId) as HTMLStyleElement | null;
-  if (!style) {
-    style = document.createElement("style");
-    style.id = styleId;
-    document.head.appendChild(style);
+export const TabItemWrapper = styled.div<{ selected?: boolean }>`
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  min-height: 20px;
+  background-color: ${props => props.selected ? 'var(--selected-bg)' : 'transparent'};
+  outline: ${props => props.selected ? '2px solid var(--accent-color)' : 'none'};
+
+  &:hover {
+    background-color: var(--hover-bg);
   }
+`;
 
-  // Apply base styles and theme
-  const baseStyleId = "base-styles";
-  let baseStyle = document.getElementById(
-    baseStyleId
-  ) as HTMLStyleElement | null;
-  if (!baseStyle) {
-    baseStyle = document.createElement("style");
-    baseStyle.id = baseStyleId;
-    document.head.appendChild(baseStyle);
+export const TabFavicon = styled.img`
+  margin-right: 8px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+`;
+
+export const TabContent = styled.div`
+  flex-grow: 1;
+  min-width: 0;
+`;
+
+export const TabTitle = styled.span`
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+`;
+
+export const TabUrl = styled.div`
+  color: var(--text-color);
+  opacity: 0.6;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+`;
+
+export const TabCloseButton = styled.span`
+  padding: 4px 8px;
+  margin: -4px -8px -4px 0;
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    opacity: 1;
   }
-  baseStyle.textContent = baseStyles;
+`;
 
-  // Set up theme
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const isDark =
-    settings.themeMode === "dark" ||
-    (settings.themeMode === "system" && prefersDark);
-  document.body.setAttribute("data-theme", isDark ? "dark" : "light");
+export const ModeIndicator = styled.div`
+  margin-bottom: 10px;
 
-  // Add system theme listener if needed
-  if (settings.themeMode === "system") {
-    const themeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const themeHandler = (e: MediaQueryListEvent) => {
-      document.body.setAttribute("data-theme", e.matches ? "dark" : "light");
-    };
-    themeQuery.addEventListener("change", themeHandler);
-  }
+  span {
+    margin-right: 5px;
+    cursor: pointer;
 
-  // Apply background image if available
-  if (settings.backgroundImage) {
-    document.body.style.backgroundImage = `url(${settings.backgroundImage})`;
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundPosition = "center";
-    document.body.style.backgroundAttachment = "fixed";
-  } else {
-    document.body.style.backgroundImage = "none";
-  }
-
-  // Set accent color CSS variable
-  document.documentElement.style.setProperty(
-    "--accent-color",
-    settings.accentColor
-  );
-
-  style.textContent = `
-    .selected {
-      outline-color: var(--accent-color) !important;
-    }
-    #mode-indicator {
-      margin-bottom: 10px;
-    }
-    #mode-indicator span {
-      margin-right: 5px;
-    }
-    #mode-indicator span.current-mode {
+    &.current-mode {
       font-weight: bold;
       color: inherit;
     }
-  `;
-}
+  }
+`;

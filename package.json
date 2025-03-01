@@ -7,11 +7,19 @@
     "copy-assets": "mkdir -p dist && cp src/page/index.html src/options/options.html manifest.json dist/",
     "build": "npm run clean && webpack --mode production && npm run copy-assets",
     "watch": "webpack --mode development --watch",
-    "start": "web-ext run --source-dir ./dist/",
-    "package": "web-ext build --source-dir ./dist/"
+    "start": "web-ext run --source-dir ./dist --firefox firefox --browser-console --start-url about:debugging#/runtime/this-firefox",
+    "package": "web-ext build --source-dir ./dist/ --overwrite-dest"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^6.1.1"
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^111.0.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/styled-components": "^5.1.34",
     "typescript": "^5.0.0",
     "ts-loader": "^9.5.0",
     "webpack": "^5.89.0",
