@@ -6,7 +6,8 @@ import { TabGroupWrapper, GroupTitle, GroupCloseButton } from '../styles';
 interface TabGroupProps {
   group: ITabGroup;
   showFavicon: boolean;
-  selectedTabId: number | null;
+  selectedIndex: number;
+  flattenedIndex: (index: number) => number;
   isHistory?: boolean;
   onSelectTab: (tab: TabInfo) => void;
   onCloseTab: (tab: TabInfo) => void;
@@ -16,7 +17,8 @@ interface TabGroupProps {
 export const TabGroup: React.FC<TabGroupProps> = ({
   group,
   showFavicon,
-  selectedTabId,
+  selectedIndex,
+  flattenedIndex,
   isHistory,
   onSelectTab,
   onCloseTab,
@@ -32,11 +34,11 @@ export const TabGroup: React.FC<TabGroupProps> = ({
           <GroupCloseButton onClick={onCloseGroup}>×</GroupCloseButton>
         )}
       </GroupTitle>
-      {group.tabs.map(tab => (
+      {group.tabs.map((tab, index) => (
         <TabItem
           key={tab.id || tab.url}
           tab={tab}
-          selected={tab.id === selectedTabId}
+          selected={selectedIndex === flattenedIndex(index)}
           showFavicon={showFavicon}
           isHistory={isHistory}
           isPinned={tab.pinned}

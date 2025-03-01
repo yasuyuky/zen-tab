@@ -21,7 +21,7 @@ const modes: Mode[] = [
 
 export const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTabId, setSelectedTabId] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [tabGroups, setTabGroups] = useState<ITabGroup[]>([]);
   const [searchMode, setSearchMode] = useState<SearchMode>("normal");
   const [showFavicon, setShowFavicon] = useState(true);
@@ -30,42 +30,64 @@ export const App: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const updateTabs = useCallback(async (query: string = "") => {
-    const [currentTab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    const allTabs = await browser.tabs.query({});
+    try {
+      const [currentTab] = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      const allTabs = await browser.tabs.query({});
 
-    let items: TabInfo[] = [];
+      let items: TabInfo[] = [];
 
-    if (searchMode === "history") {
-      if (query) {
-        const historyItems = await browser.history.search({
-          text: query,
-          startTime: 0,
-          maxResults: 100,
-        });
-        items = historyItems;
+      if (searchMode === "history") {
+        if (query) {
+          const historyItems = await browser.history.search({
+            text: query,
+            startTime: 0,
+            maxResults: 100,
+          });
+          items = historyItems;
+        }
+      } else {
+        items = allTabs.filter((tab) => tab.id !== currentTab.id);
+
+        // Apply mode-specific filters
+        switch (searchMode) {
+          case "normal":
+            items = items.filter(tab => !tab.incognito && !tab.pinned);
+            break;
+          case "pinned":
+            items = items.filter(tab => tab.pinned);
+            break;
+          case "audible":
+            items = items.filter(tab => tab.audible);
+            break;
+        }
       }
-    } else {
-      items = allTabs
-        .filter((tab) => tab.id !== currentTab.id)
-        .filter((tab) => {
-          switch (searchMode) {
-            case "normal":
-              return !tab.incognito;
-            case "pinned":
-              return tab.pinned;
-            case "audible":
-              return tab.audible;
-            default:
-              return false;
-          }
-        });
-    }
 
-    const groups = groupTabs(items, query);
-    setTabGroups(groups);
+      const groups = groupTabs(items, query);
+      const newFlattenedTabs = groups.flatMap(group => group.tabs);
+
+      console.log('Updating tabs:', {
+        items: items.length,
+        groups: groups.length,
+        tabs: newFlattenedTabs.length,
+        query,
+        mode: searchMode
+      });
+
+      // Always reset selection when tab list changes
+      setSelectedIndex(0);
+      setTabGroups(groups);
+
+      console.log('Reset selection:', {
+        newTabCount: newFlattenedTabs.length,
+        selectedIndex: 0,
+        firstTab: newFlattenedTabs[0]?.title
+      });
+    } catch (error) {
+      console.error('Error updating tabs:', error);
+    }
   }, [searchMode]);
 
   const matchesSearch = useCallback((item: TabInfo, query: string): boolean => {
@@ -147,6 +169,31 @@ export const App: React.FC = () => {
     return typeof tab.id === 'number' && typeof tab.windowId === 'number';
   };
 
+  const toggleSearchMode = useCallback(() => {
+    if (isTransitioning) return;
+
+    const currentIndex = availableModes.findIndex(({ id }) => id === searchMode);
+    const nextIndex = (currentIndex + 1) % availableModes.length;
+    const nextMode = availableModes[nextIndex].id;
+    console.log(`Mode switching: ${searchMode} -> ${nextMode}`);
+
+    setIsTransitioning(true);
+    setTabGroups([]); // Clear current tabs for smooth transition
+
+    // Small delay to allow for fade out
+    setTimeout(() => {
+      setSearchMode(nextMode);
+      setIsTransitioning(false);
+      // Restore focus to search input after mode switch
+      searchInputRef.current?.focus();
+    }, 150);
+  }, [availableModes, searchMode, isTransitioning, searchInputRef]);
+
+  // Get flattened list of all tabs for keyboard navigation
+  const flattenedTabs = useMemo(() => {
+    return tabGroups.flatMap(group => group.tabs);
+  }, [tabGroups]);
+
   const handleSelectTab = async (tab: TabInfo) => {
     if (searchMode === "history") {
       if (tab.url) {
@@ -159,6 +206,81 @@ export const App: React.FC = () => {
       window.close();
     }
   };
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Capture and handle arrow keys regardless of focus
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const len = flattenedTabs.length;
+      if (len === 0) return;
+
+      const currentIndex = selectedIndex;
+      let nextIndex = currentIndex;
+
+      if (e.key === 'ArrowDown') {
+        nextIndex = Math.min(currentIndex + 1, len - 1);
+      } else {
+        nextIndex = Math.max(currentIndex - 1, 0);
+      }
+
+      // Verify the next index is valid
+      if (nextIndex < 0 || nextIndex >= len) {
+        console.warn('Invalid index:', { nextIndex, len });
+        return;
+      }
+
+      const nextTab = flattenedTabs[nextIndex];
+      console.log('Selection change:', {
+        direction: e.key,
+        from: currentIndex,
+        to: nextIndex,
+        currentTab: flattenedTabs[currentIndex]?.title,
+        nextTab: nextTab?.title,
+        totalTabs: len,
+        flattenedTabs: flattenedTabs.map(t => t.title)
+      });
+
+      setSelectedIndex(nextIndex);
+      return;
+    }
+
+    // Handle other keys based on focus state
+    if (e.key === "Escape") {
+      window.close();
+      return;
+    }
+
+    if (e.key === "Tab" && availableModes.length > 0) {
+      e.preventDefault();
+      toggleSearchMode();
+      return;
+    }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const len = flattenedTabs.length;
+        if (len === 0) return;
+
+        // Always use selectedIndex, even when search is focused
+        const index = Math.min(selectedIndex, len - 1);
+        const tab = flattenedTabs[index];
+
+        console.log('Activating tab:', {
+          selectedIndex,
+          actualIndex: index,
+          tabTitle: tab?.title,
+          searchFocused: document.activeElement === searchInputRef.current,
+          flattenedTabs: flattenedTabs.map(t => t.title)
+        });
+
+        if (tab) {
+          handleSelectTab(tab);
+        }
+      }
+  }, [flattenedTabs, selectedIndex, availableModes, toggleSearchMode, handleSelectTab, isBrowserTab]);
+
 
   const handleCloseTab = async (tab: TabInfo) => {
     if (searchMode === "history" && tab.url) {
@@ -183,57 +305,28 @@ export const App: React.FC = () => {
     await updateTabs(searchQuery);
   };
 
-  const toggleSearchMode = useCallback(() => {
-    if (isTransitioning) return;
-
-    const currentIndex = availableModes.findIndex(({ id }) => id === searchMode);
-    const nextIndex = (currentIndex + 1) % availableModes.length;
-    const nextMode = availableModes[nextIndex].id;
-    console.log(`Mode switching: ${searchMode} -> ${nextMode}`);
-
-    setIsTransitioning(true);
-    setTabGroups([]); // Clear current tabs for smooth transition
-
-    // Small delay to allow for fade out
-    setTimeout(() => {
-      setSearchMode(nextMode);
-      setIsTransitioning(false);
-    }, 150);
-  }, [availableModes, searchMode, isTransitioning]);
-
   useEffect(() => {
     const init = async () => {
       const settings = await loadSettings();
       setShowFavicon(settings.showFavicon);
       const newAvailableModes = settings.enableHistorySearch ? modes : modes.filter(m => m.id !== "history");
       setAvailableModes(newAvailableModes);
-
-      const handleVisibilityChange = () => {
-        if (document.hidden) window.close();
-      };
-
-      const handleKeyDown = (e: Event) => {
-        if (e instanceof KeyboardEvent) {
-          if (e.key === "Escape") {
-            window.close();
-          } else if (e.key === "Tab" && newAvailableModes.length > 0) {
-            e.preventDefault();
-            toggleSearchMode();
-          }
-        }
-      };
-
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-      document.addEventListener("keydown", handleKeyDown);
-
-      return () => {
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-        document.removeEventListener("keydown", handleKeyDown);
-      };
     };
 
     init();
-  }, [toggleSearchMode]);
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) window.close();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]); // Only depends on handleKeyDown since it's used in the event listener
 
   useEffect(() => {
     if (!isTransitioning) {
@@ -274,7 +367,8 @@ export const App: React.FC = () => {
               key={group.title}
               group={group}
               showFavicon={showFavicon}
-              selectedTabId={selectedTabId}
+              selectedIndex={selectedIndex}
+              flattenedIndex={(index) => flattenedTabs.indexOf(group.tabs[index])}
               isHistory={searchMode === "history"}
               onSelectTab={handleSelectTab}
               onCloseTab={handleCloseTab}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TabItemWrapper, TabFavicon, TabContent, TabTitle, TabUrl, TabCloseButton } from '../styles';
 import { TabInfo } from '../types';
 
@@ -21,6 +21,17 @@ export const TabItem: React.FC<TabItemProps> = ({
   onClose,
   isPinned,
 }) => {
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selected && itemRef.current) {
+      itemRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [selected]);
+
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClose();
@@ -28,6 +39,7 @@ export const TabItem: React.FC<TabItemProps> = ({
 
   return (
     <TabItemWrapper
+      ref={itemRef}
       selected={selected}
       onClick={onSelect}
       className={isPinned ? 'pinned' : ''}
