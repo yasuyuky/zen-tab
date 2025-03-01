@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle } from 'styled-components';
+import styled, { createGlobalStyle } from "styled-components";
 
 export const GlobalStyle = createGlobalStyle`
   :root {
@@ -82,6 +82,12 @@ export const TabGroupsContainer = styled.div`
   padding: 0 16px;
   background: var(--container-bg);
   backdrop-filter: blur(4px);
+  opacity: 1;
+  transition: opacity 0.15s ease-in-out;
+
+  &:empty {
+    opacity: 0;
+  }
 `;
 
 export const TabGroupWrapper = styled.div`
@@ -118,8 +124,10 @@ export const TabItemWrapper = styled.div<{ selected?: boolean }>`
   cursor: pointer;
   border-radius: 4px;
   min-height: 20px;
-  background-color: ${props => props.selected ? 'var(--selected-bg)' : 'transparent'};
-  outline: ${props => props.selected ? '2px solid var(--accent-color)' : 'none'};
+  background-color: ${(props) =>
+    props.selected ? "var(--selected-bg)" : "transparent"};
+  outline: ${(props) =>
+    props.selected ? "2px solid var(--accent-color)" : "none"};
 
   &:hover {
     background-color: var(--hover-bg);
@@ -176,10 +184,17 @@ export const ModeIndicator = styled.div`
   span {
     margin-right: 5px;
     cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s ease-in-out, font-weight 0.15s ease-in-out;
 
     &.current-mode {
       font-weight: bold;
       color: inherit;
+      opacity: 1;
+    }
+
+    &:hover {
+      opacity: 0.8;
     }
   }
 `;

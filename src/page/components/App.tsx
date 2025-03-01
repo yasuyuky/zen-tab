@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, ChangeEvent } from 'react';
+import React, { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from 'react';
 import { TabGroup } from './TabGroup';
 import { TabInfo, TabGroup as ITabGroup, Mode, SearchMode } from '../types';
 import {
@@ -26,6 +26,7 @@ export const App: React.FC = () => {
   const [searchMode, setSearchMode] = useState<SearchMode>("normal");
   const [showFavicon, setShowFavicon] = useState(true);
   const [availableModes, setAvailableModes] = useState(modes);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const updateTabs = useCallback(async (query: string = "") => {
@@ -66,6 +67,14 @@ export const App: React.FC = () => {
     const groups = groupTabs(items, query);
     setTabGroups(groups);
   }, [searchMode]);
+
+  const matchesSearch = useCallback((item: TabInfo, query: string): boolean => {
+    const searchStr = query.toLowerCase();
+    return (
+      !!item.title?.toLowerCase().includes(searchStr) ||
+      !!item.url?.toLowerCase().includes(searchStr)
+    );
+  }, []);
 
   const groupTabs = useCallback((items: TabInfo[], searchQuery: string): ITabGroup[] => {
     const grouping: Record<string, TabInfo[]> = {};
@@ -108,7 +117,7 @@ export const App: React.FC = () => {
     }
 
     return groups.sort((a, b) => a.title.localeCompare(b.title));
-  }, [searchMode]);
+  }, [searchMode, matchesSearch]);
 
   const formatDate = (date: Date): string => {
     const now = new Date();
@@ -132,14 +141,6 @@ export const App: React.FC = () => {
 
   const getVisitTime = (item: TabInfo): number => {
     return "lastVisitTime" in item ? item.lastVisitTime || Date.now() : Date.now();
-  };
-
-  const matchesSearch = (item: TabInfo, query: string): boolean => {
-    const searchStr = query.toLowerCase();
-    return (
-      !!item.title?.toLowerCase().includes(searchStr) ||
-      !!item.url?.toLowerCase().includes(searchStr)
-    );
   };
 
   const isBrowserTab = (tab: TabInfo): tab is browser.tabs.Tab & { id: number; windowId: number } => {
@@ -183,11 +184,22 @@ export const App: React.FC = () => {
   };
 
   const toggleSearchMode = useCallback(() => {
+    if (isTransitioning) return;
+
     const currentIndex = availableModes.findIndex(({ id }) => id === searchMode);
     const nextIndex = (currentIndex + 1) % availableModes.length;
-    console.log(searchMode, availableModes, currentIndex, nextIndex, availableModes[nextIndex].id);
-    setSearchMode(availableModes[nextIndex].id);
-  }, [availableModes, searchMode]);
+    const nextMode = availableModes[nextIndex].id;
+    console.log(`Mode switching: ${searchMode} -> ${nextMode}`);
+
+    setIsTransitioning(true);
+    setTabGroups([]); // Clear current tabs for smooth transition
+
+    // Small delay to allow for fade out
+    setTimeout(() => {
+      setSearchMode(nextMode);
+      setIsTransitioning(false);
+    }, 150);
+  }, [availableModes, searchMode, isTransitioning]);
 
   useEffect(() => {
     const init = async () => {
@@ -195,9 +207,6 @@ export const App: React.FC = () => {
       setShowFavicon(settings.showFavicon);
       const newAvailableModes = settings.enableHistorySearch ? modes : modes.filter(m => m.id !== "history");
       setAvailableModes(newAvailableModes);
-
-      // Wait for state update to complete
-      await new Promise(resolve => setTimeout(resolve, 0));
 
       const handleVisibilityChange = () => {
         if (document.hidden) window.close();
@@ -217,8 +226,6 @@ export const App: React.FC = () => {
       document.addEventListener("visibilitychange", handleVisibilityChange);
       document.addEventListener("keydown", handleKeyDown);
 
-      updateTabs();
-
       return () => {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         document.removeEventListener("keydown", handleKeyDown);
@@ -226,11 +233,13 @@ export const App: React.FC = () => {
     };
 
     init();
-  }, [toggleSearchMode, updateTabs]);
+  }, [toggleSearchMode]);
 
   useEffect(() => {
-    updateTabs(searchQuery);
-  }, [searchQuery, searchMode]);
+    if (!isTransitioning) {
+      updateTabs(searchQuery);
+    }
+  }, [searchQuery, searchMode, isTransitioning, updateTabs]);
 
   return (
     <>
