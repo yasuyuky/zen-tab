@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   entry: {
-    index: "./src/page/index.ts",
+    index: ["./src/page/index.tsx", "./src/page/index.ts"],
     background: "./src/background.ts",
     options: "./src/options/options.ts",
   },
@@ -23,4 +23,5 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
   },
   devtool: "source-map",
+  mode: "development",
 };
