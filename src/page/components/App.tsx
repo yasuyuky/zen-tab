@@ -159,16 +159,20 @@ export const App: React.FC = () => {
       if (e.key === "Enter") {
         e.preventDefault();
         const len = flattenedTabs.length;
-        if (len === 0) return;
 
-        // If no selection, activate first tab
-        const tab = selectedIndex === null ? flattenedTabs[0] : flattenedTabs[selectedIndex];
+        if ((len === 0 || selectedIndex === null) && searchQuery) {
+          // No matching tabs or no selection, perform web search using browser's default search engine
+          browser.search.query({ text: searchQuery });
+          window.close();
+          return;
+        }
+
+        const tab = flattenedTabs[selectedIndex!];
 
         console.log("Activating tab:", {
-          previousIndex: selectedIndex,
+          selectedIndex,
           tabTitle: tab?.title,
           searchFocused: document.activeElement === searchInputRef.current,
-          usingFirstTab: selectedIndex === null,
         });
 
         if (tab) {
