@@ -21,7 +21,7 @@ const modes: Mode[] = [
 
 export const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [tabGroups, setTabGroups] = useState<ITabGroup[]>([]);
   const [searchMode, setSearchMode] = useState<SearchMode>("normal");
   const [showFavicon, setShowFavicon] = useState(true);
@@ -76,14 +76,13 @@ export const App: React.FC = () => {
         mode: searchMode
       });
 
-      // Always reset selection when tab list changes
-      setSelectedIndex(0);
+      // Clear selection when tab list changes
+      setSelectedIndex(null);
       setTabGroups(groups);
 
       console.log('Reset selection:', {
         newTabCount: newFlattenedTabs.length,
-        selectedIndex: 0,
-        firstTab: newFlattenedTabs[0]?.title
+        selectedIndex: null,
       });
     } catch (error) {
       console.error('Error updating tabs:', error);
@@ -216,13 +215,17 @@ export const App: React.FC = () => {
       const len = flattenedTabs.length;
       if (len === 0) return;
 
-      const currentIndex = selectedIndex;
-      let nextIndex = currentIndex;
-
-      if (e.key === 'ArrowDown') {
-        nextIndex = Math.min(currentIndex + 1, len - 1);
+      let nextIndex: number;
+      if (selectedIndex === null) {
+        // First arrow key press selects first or last item
+        nextIndex = e.key === 'ArrowDown' ? 0 : len - 1;
       } else {
-        nextIndex = Math.max(currentIndex - 1, 0);
+        // Subsequent presses move selection up/down
+        if (e.key === 'ArrowDown') {
+          nextIndex = Math.min(selectedIndex + 1, len - 1);
+        } else {
+          nextIndex = Math.max(selectedIndex - 1, 0);
+        }
       }
 
       // Verify the next index is valid
@@ -234,12 +237,11 @@ export const App: React.FC = () => {
       const nextTab = flattenedTabs[nextIndex];
       console.log('Selection change:', {
         direction: e.key,
-        from: currentIndex,
-        to: nextIndex,
-        currentTab: flattenedTabs[currentIndex]?.title,
+        previousIndex: selectedIndex,
+        nextIndex,
+        previousTab: selectedIndex !== null ? flattenedTabs[selectedIndex]?.title : null,
         nextTab: nextTab?.title,
-        totalTabs: len,
-        flattenedTabs: flattenedTabs.map(t => t.title)
+        totalTabs: len
       });
 
       setSelectedIndex(nextIndex);
@@ -263,16 +265,14 @@ export const App: React.FC = () => {
         const len = flattenedTabs.length;
         if (len === 0) return;
 
-        // Always use selectedIndex, even when search is focused
-        const index = Math.min(selectedIndex, len - 1);
-        const tab = flattenedTabs[index];
+        // If no selection, activate first tab
+        const tab = selectedIndex === null ? flattenedTabs[0] : flattenedTabs[selectedIndex];
 
         console.log('Activating tab:', {
-          selectedIndex,
-          actualIndex: index,
+          previousIndex: selectedIndex,
           tabTitle: tab?.title,
           searchFocused: document.activeElement === searchInputRef.current,
-          flattenedTabs: flattenedTabs.map(t => t.title)
+          usingFirstTab: selectedIndex === null
         });
 
         if (tab) {
