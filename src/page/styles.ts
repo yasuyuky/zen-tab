@@ -144,10 +144,13 @@ export const TabFavicon = styled.img`
 export const TabContent = styled.div`
   flex-grow: 1;
   min-width: 0;
+  width: 0;
+  max-width: 100%;
+  overflow: hidden;
 `;
 
-export const TabTitle = styled.span`
-  flex-grow: 1;
+export const TabTitle = styled.div`
+  display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
