@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef, ChangeEvent, useMemo } from 'react';
-import { TabGroup } from './TabGroup';
-import { TabInfo, TabGroup as ITabGroup, Mode, SearchMode } from '../types';
+import React, { useEffect, useRef, ChangeEvent, useMemo, useCallback } from "react";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { TabGroup } from "./TabGroup";
+import { TabInfo, TabGroup as ITabGroup } from "../types";
 import {
   GlobalStyle,
   SearchContainer,
@@ -8,190 +9,41 @@ import {
   SearchInput,
   ScrollContainer,
   TabGroupsContainer,
-  ModeIndicator
-} from '../styles';
-import { loadSettings } from '../utils';
-
-const modes: Mode[] = [
-  { id: "normal", label: "Tabs" },
-  { id: "pinned", label: "Pinned" },
-  { id: "audible", label: "Audible" },
-  { id: "history", label: "History" },
-];
+  ModeIndicator,
+} from "../styles";
+import {
+  setSearchQuery,
+  setSelectedIndex,
+  setSearchMode,
+  setIsTransitioning,
+  clearTabGroups,
+  loadInitialSettings,
+  updateTabs,
+} from "../store/tabSlice";
+import { RootState } from "../store";
 
 export const App: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [tabGroups, setTabGroups] = useState<ITabGroup[]>([]);
-  const [searchMode, setSearchMode] = useState<SearchMode>("normal");
-  const [showFavicon, setShowFavicon] = useState(true);
-  const [availableModes, setAvailableModes] = useState(modes);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const dispatch = useAppDispatch();
+  const {
+    searchQuery,
+    selectedIndex,
+    tabGroups,
+    searchMode,
+    showFavicon,
+    availableModes,
+    isTransitioning,
+  } = useAppSelector((state: RootState) => state.tabs);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const updateTabs = useCallback(async (query: string = "") => {
-    try {
-      const [currentTab] = await browser.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-      const allTabs = await browser.tabs.query({});
-
-      let items: TabInfo[] = [];
-
-      if (searchMode === "history") {
-        if (query) {
-          const historyItems = await browser.history.search({
-            text: query,
-            startTime: 0,
-            maxResults: 100,
-          });
-          items = historyItems;
-        }
-      } else {
-        items = allTabs.filter((tab) => tab.id !== currentTab.id);
-
-        // Apply mode-specific filters
-        switch (searchMode) {
-          case "normal":
-            items = items.filter(tab => !tab.incognito && !tab.pinned);
-            break;
-          case "pinned":
-            items = items.filter(tab => tab.pinned);
-            break;
-          case "audible":
-            items = items.filter(tab => tab.audible);
-            break;
-        }
-      }
-
-      const groups = groupTabs(items, query);
-      const newFlattenedTabs = groups.flatMap(group => group.tabs);
-
-      console.log('Updating tabs:', {
-        items: items.length,
-        groups: groups.length,
-        tabs: newFlattenedTabs.length,
-        query,
-        mode: searchMode
-      });
-
-      // Clear selection when tab list changes
-      setSelectedIndex(null);
-      setTabGroups(groups);
-
-      console.log('Reset selection:', {
-        newTabCount: newFlattenedTabs.length,
-        selectedIndex: null,
-      });
-    } catch (error) {
-      console.error('Error updating tabs:', error);
-    }
-  }, [searchMode]);
-
-  const matchesSearch = useCallback((item: TabInfo, query: string): boolean => {
-    const searchStr = query.toLowerCase();
-    return (
-      !!item.title?.toLowerCase().includes(searchStr) ||
-      !!item.url?.toLowerCase().includes(searchStr)
-    );
-  }, []);
-
-  const groupTabs = useCallback((items: TabInfo[], searchQuery: string): ITabGroup[] => {
-    const grouping: Record<string, TabInfo[]> = {};
-
-    items.forEach((item) => {
-      if (!item.url || !item.title) return;
-
-      if (searchQuery && !matchesSearch(item, searchQuery)) return;
-
-      let groupKey: string;
-      if (searchMode === "history" && "lastVisitTime" in item) {
-        const visitDate = new Date(item.lastVisitTime || Date.now());
-        groupKey = formatDate(visitDate);
-      } else {
-        const url = new URL(item.url);
-        groupKey = url.hostname;
-      }
-
-      if (!grouping[groupKey]) {
-        grouping[groupKey] = [];
-      }
-      grouping[groupKey].push(item);
-    });
-
-    const groups = Object.entries(grouping).map(([title, tabs]) => ({
-      title,
-      tabs,
-    }));
-
-    if (searchMode === "history") {
-      const dateOrder = ["Today", "Yesterday"];
-      return groups.sort((a, b) => {
-        const aIndex = dateOrder.indexOf(a.title);
-        const bIndex = dateOrder.indexOf(b.title);
-        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-        return getVisitTime(b.tabs[0]) - getVisitTime(a.tabs[0]);
-      });
-    }
-
-    return groups.sort((a, b) => a.title.localeCompare(b.title));
-  }, [searchMode, matchesSearch]);
-
-  const formatDate = (date: Date): string => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date >= today) {
-      return "Today";
-    } else if (date >= yesterday) {
-      return "Yesterday";
-    } else {
-      return date.toLocaleDateString(undefined, {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    }
-  };
-
-  const getVisitTime = (item: TabInfo): number => {
-    return "lastVisitTime" in item ? item.lastVisitTime || Date.now() : Date.now();
-  };
-
-  const isBrowserTab = (tab: TabInfo): tab is browser.tabs.Tab & { id: number; windowId: number } => {
-    return typeof tab.id === 'number' && typeof tab.windowId === 'number';
-  };
-
-  const toggleSearchMode = useCallback(() => {
-    if (isTransitioning) return;
-
-    const currentIndex = availableModes.findIndex(({ id }) => id === searchMode);
-    const nextIndex = (currentIndex + 1) % availableModes.length;
-    const nextMode = availableModes[nextIndex].id;
-    console.log(`Mode switching: ${searchMode} -> ${nextMode}`);
-
-    setIsTransitioning(true);
-    setTabGroups([]); // Clear current tabs for smooth transition
-
-    // Small delay to allow for fade out
-    setTimeout(() => {
-      setSearchMode(nextMode);
-      setIsTransitioning(false);
-      // Restore focus to search input after mode switch
-      searchInputRef.current?.focus();
-    }, 150);
-  }, [availableModes, searchMode, isTransitioning, searchInputRef]);
-
-  // Get flattened list of all tabs for keyboard navigation
   const flattenedTabs = useMemo(() => {
-    return tabGroups.flatMap(group => group.tabs);
+    return tabGroups.flatMap((group) => group.tabs);
   }, [tabGroups]);
+
+  const isBrowserTab = (
+    tab: TabInfo
+  ): tab is browser.tabs.Tab & { id: number; windowId: number } => {
+    return typeof tab.id === "number" && typeof tab.windowId === "number";
+  };
 
   const handleSelectTab = async (tab: TabInfo) => {
     if (searchMode === "history") {
@@ -206,93 +58,17 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Capture and handle arrow keys regardless of focus
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const len = flattenedTabs.length;
-      if (len === 0) return;
-
-      let nextIndex: number;
-      if (selectedIndex === null) {
-        // First arrow key press selects first or last item
-        nextIndex = e.key === 'ArrowDown' ? 0 : len - 1;
-      } else {
-        // Subsequent presses move selection up/down
-        if (e.key === 'ArrowDown') {
-          nextIndex = Math.min(selectedIndex + 1, len - 1);
-        } else {
-          nextIndex = Math.max(selectedIndex - 1, 0);
-        }
-      }
-
-      // Verify the next index is valid
-      if (nextIndex < 0 || nextIndex >= len) {
-        console.warn('Invalid index:', { nextIndex, len });
-        return;
-      }
-
-      const nextTab = flattenedTabs[nextIndex];
-      console.log('Selection change:', {
-        direction: e.key,
-        previousIndex: selectedIndex,
-        nextIndex,
-        previousTab: selectedIndex !== null ? flattenedTabs[selectedIndex]?.title : null,
-        nextTab: nextTab?.title,
-        totalTabs: len
-      });
-
-      setSelectedIndex(nextIndex);
-      return;
-    }
-
-    // Handle other keys based on focus state
-    if (e.key === "Escape") {
-      window.close();
-      return;
-    }
-
-    if (e.key === "Tab" && availableModes.length > 0) {
-      e.preventDefault();
-      toggleSearchMode();
-      return;
-    }
-
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const len = flattenedTabs.length;
-        if (len === 0) return;
-
-        // If no selection, activate first tab
-        const tab = selectedIndex === null ? flattenedTabs[0] : flattenedTabs[selectedIndex];
-
-        console.log('Activating tab:', {
-          previousIndex: selectedIndex,
-          tabTitle: tab?.title,
-          searchFocused: document.activeElement === searchInputRef.current,
-          usingFirstTab: selectedIndex === null
-        });
-
-        if (tab) {
-          handleSelectTab(tab);
-        }
-      }
-  }, [flattenedTabs, selectedIndex, availableModes, toggleSearchMode, handleSelectTab, isBrowserTab]);
-
-
   const handleCloseTab = async (tab: TabInfo) => {
     if (searchMode === "history" && tab.url) {
       await browser.history.deleteUrl({ url: tab.url });
     } else if (isBrowserTab(tab)) {
       await browser.tabs.remove(tab.id);
     }
-    await updateTabs(searchQuery);
+    dispatch(updateTabs());
   };
 
   const handleCloseGroup = async (group: ITabGroup) => {
-    const promises = group.tabs.map(tab => {
+    const promises = group.tabs.map((tab) => {
       if (searchMode === "history" && tab.url) {
         return browser.history.deleteUrl({ url: tab.url });
       } else if (isBrowserTab(tab) && !tab.pinned) {
@@ -302,15 +78,110 @@ export const App: React.FC = () => {
     });
 
     await Promise.all(promises);
-    await updateTabs(searchQuery);
+    dispatch(updateTabs());
   };
+
+  const toggleSearchMode = useCallback(() => {
+    if (isTransitioning) return;
+
+    const currentIndex = availableModes.findIndex(({ id }) => id === searchMode);
+    const nextIndex = (currentIndex + 1) % availableModes.length;
+    const nextMode = availableModes[nextIndex].id;
+    console.log(`Mode switching: ${searchMode} -> ${nextMode}`);
+
+    dispatch(setIsTransitioning(true));
+    dispatch(clearTabGroups()); // Clear current tabs for smooth transition
+
+    // Small delay to allow for fade out
+    setTimeout(() => {
+      dispatch(setSearchMode(nextMode));
+      dispatch(setIsTransitioning(false));
+      // Restore focus to search input after mode switch
+      searchInputRef.current?.focus();
+    }, 150);
+  }, [availableModes, searchMode, isTransitioning, dispatch]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Capture and handle arrow keys regardless of focus
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const len = flattenedTabs.length;
+        if (len === 0) return;
+
+        let nextIndex: number;
+        if (selectedIndex === null) {
+          // First arrow key press selects first or last item
+          nextIndex = e.key === "ArrowDown" ? 0 : len - 1;
+        } else {
+          // Subsequent presses move selection up/down
+          if (e.key === "ArrowDown") {
+            nextIndex = Math.min(selectedIndex + 1, len - 1);
+          } else {
+            nextIndex = Math.max(selectedIndex - 1, 0);
+          }
+        }
+
+        // Verify the next index is valid
+        if (nextIndex < 0 || nextIndex >= len) {
+          console.warn("Invalid index:", { nextIndex, len });
+          return;
+        }
+
+        const nextTab = flattenedTabs[nextIndex];
+        console.log("Selection change:", {
+          direction: e.key,
+          previousIndex: selectedIndex,
+          nextIndex,
+          previousTab: selectedIndex !== null ? flattenedTabs[selectedIndex]?.title : null,
+          nextTab: nextTab?.title,
+          totalTabs: len,
+        });
+
+        dispatch(setSelectedIndex(nextIndex));
+        return;
+      }
+
+      // Handle other keys based on focus state
+      if (e.key === "Escape") {
+        window.close();
+        return;
+      }
+
+      if (e.key === "Tab" && availableModes.length > 0) {
+        e.preventDefault();
+        toggleSearchMode();
+        return;
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const len = flattenedTabs.length;
+        if (len === 0) return;
+
+        // If no selection, activate first tab
+        const tab = selectedIndex === null ? flattenedTabs[0] : flattenedTabs[selectedIndex];
+
+        console.log("Activating tab:", {
+          previousIndex: selectedIndex,
+          tabTitle: tab?.title,
+          searchFocused: document.activeElement === searchInputRef.current,
+          usingFirstTab: selectedIndex === null,
+        });
+
+        if (tab) {
+          handleSelectTab(tab);
+        }
+      }
+    },
+    [flattenedTabs, selectedIndex, availableModes, toggleSearchMode]
+  );
 
   useEffect(() => {
     const init = async () => {
-      const settings = await loadSettings();
-      setShowFavicon(settings.showFavicon);
-      const newAvailableModes = settings.enableHistorySearch ? modes : modes.filter(m => m.id !== "history");
-      setAvailableModes(newAvailableModes);
+      dispatch(loadInitialSettings());
     };
 
     init();
@@ -326,13 +197,13 @@ export const App: React.FC = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleKeyDown]); // Only depends on handleKeyDown since it's used in the event listener
+  }, [handleKeyDown, dispatch]);
 
   useEffect(() => {
     if (!isTransitioning) {
-      updateTabs(searchQuery);
+      dispatch(updateTabs());
     }
-  }, [searchQuery, searchMode, isTransitioning, updateTabs]);
+  }, [searchQuery, searchMode, isTransitioning, dispatch]);
 
   return (
     <>
@@ -344,7 +215,7 @@ export const App: React.FC = () => {
               <span
                 key={id}
                 className={searchMode === id ? "current-mode" : ""}
-                onClick={() => setSearchMode(id)}
+                onClick={() => dispatch(setSearchMode(id))}
               >
                 {label}
               </span>
@@ -355,7 +226,9 @@ export const App: React.FC = () => {
             type="text"
             placeholder="Search tabs..."
             value={searchQuery}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              dispatch(setSearchQuery(e.target.value))
+            }
             autoFocus
           />
         </SearchInner>
