@@ -1,4 +1,6 @@
-export type TabInfo = (browser.tabs.Tab | browser.history.HistoryItem) & {
+import browser from "webextension-polyfill";
+
+export type TabInfo = (browser.Tabs.Tab | browser.History.HistoryItem) & {
   id?: number | string;
   windowId?: number;
   title?: string;
