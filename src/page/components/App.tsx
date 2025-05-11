@@ -21,6 +21,8 @@ import {
   updateTabs,
 } from "../store/tabSlice";
 import { RootState } from "../store";
+import browser from "webextension-polyfill";
+
 
 export const App: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -41,7 +43,7 @@ export const App: React.FC = () => {
 
   const isBrowserTab = (
     tab: TabInfo
-  ): tab is browser.tabs.Tab & { id: number; windowId: number } => {
+  ): tab is browser.Tabs.Tab & { id: number; windowId: number } => {
     return typeof tab.id === "number" && typeof tab.windowId === "number";
   };
 
