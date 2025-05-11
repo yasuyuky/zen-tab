@@ -1,3 +1,5 @@
+import browser from "webextension-polyfill";
+
 import { ZenTabSettings } from "./types";
 
 export const loadSettings = async (): Promise<ZenTabSettings> => {
