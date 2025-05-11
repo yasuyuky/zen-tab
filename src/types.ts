@@ -1,10 +1,12 @@
+import browser from "webextension-polyfill";
+
 export interface TabGroup {
   title: string;
-  tabs: browser.tabs.Tab[];
+  tabs: browser.Tabs.Tab[];
 }
 
 export interface TabGrouping {
-  [key: string]: browser.tabs.Tab[];
+  [key: string]: browser.Tabs.Tab[];
 }
 
 export interface TabSearch {
