@@ -1,9 +1,11 @@
-async function findDuplicateTabs(tabUrl: string): Promise<browser.tabs.Tab[]> {
+import browser from "webextension-polyfill";
+
+async function findDuplicateTabs(tabUrl: string): Promise<browser.Tabs.Tab[]> {
   const tabs = await browser.tabs.query({ url: tabUrl });
   return tabs;
 }
 
-async function handleDuplicateTabs(tab: browser.tabs.Tab) {
+async function handleDuplicateTabs(tab: browser.Tabs.Tab) {
   if (!tab.url) return;
 
   const duplicates = await findDuplicateTabs(tab.url);
