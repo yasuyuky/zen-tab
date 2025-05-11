@@ -1,6 +1,6 @@
 import { ZenTabSettings, ThemeMode } from "../types";
 import { loadSettings } from "../utils";
-
+import browser from "webextension-polyfill";
 class OptionsManager {
   private accentColorInput: HTMLInputElement;
   private saveButton: HTMLButtonElement;
