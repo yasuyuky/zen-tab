@@ -1,4 +1,5 @@
 import { ZenTabSettings, defaultSettings } from "./types";
+import browser from "webextension-polyfill";
 
 export async function loadSettings(): Promise<ZenTabSettings> {
   const [syncResult, localResult] = await Promise.all([
