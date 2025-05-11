@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { TabInfo, TabGroup as ITabGroup, Mode, SearchMode } from "../types";
 import { loadSettings } from "../utils";
+import browser from "webextension-polyfill";
 
 interface TabState {
   searchQuery: string;
