@@ -19,7 +19,7 @@
   "commands": {
     "open-zentab": {
       "suggested_key": {
-        "default": "Command+Shift+T"
+        "default": "MacCtrl+Shift+Z"
       },
       "description": "Open Zen Tab"
     }
