@@ -78,6 +78,7 @@ browser.commands.onCommand.addListener((command) => {
 
 // Handle toolbar button click
 browser.browserAction.onClicked.addListener(() => {
+  groupTabs();
   openZenTab();
 });
 
