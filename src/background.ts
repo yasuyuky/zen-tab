@@ -71,6 +71,8 @@ async function groupTabs() {
 browser.commands.onCommand.addListener((command) => {
   if (command === "open-zentab") {
     openZenTab();
+  } else if (command === "group-tabs") {
+    groupTabs();
   }
 });
 
