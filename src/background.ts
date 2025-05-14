@@ -25,6 +25,48 @@ async function openZenTab() {
   await browser.tabs.create({ url });
 }
 
+async function groupTabs() {
+  const tabs = (await browser.tabs.query({})).flatMap((tab) =>
+    tab.pinned ? [] : tab
+  );
+
+  (browser.tabs as any).ungroup(tabs.map((tab) => tab.id));
+  const group0: { [key: string]: browser.Tabs.Tab[] } = {};
+
+  for (const tab of tabs) {
+    if (tab.url) {
+      const groupKey = new URL(tab.url).hostname;
+      if (!group0[groupKey]) {
+        group0[groupKey] = [];
+      }
+      group0[groupKey].push(tab);
+    }
+  }
+
+  const group1: { [key: string]: browser.Tabs.Tab[] } = { others: [] };
+  for (const [key, value] of Object.entries(group0)) {
+    if (value.length > 1) {
+      group1[key] = value.sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
+    } else {
+      group1["others"].push(value[0]);
+    }
+  }
+  for (const [key, value] of Object.entries(group1)) {
+    if (browser.tabs.group) {
+      const groupId = await browser.tabs.group({
+        tabIds: value.map((tab) => tab.id || 0),
+      });
+      console.log(`Created group ${key} with ID ${groupId}`);
+      await browser.tabGroups?.update(groupId, {
+        title: key,
+      });
+    }
+  }
+  return;
+}
+
 // Handle keyboard shortcut
 browser.commands.onCommand.addListener((command) => {
   if (command === "open-zentab") {
