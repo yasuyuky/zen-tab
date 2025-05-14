@@ -22,6 +22,12 @@
         "default": "MacCtrl+Shift+Z"
       },
       "description": "Open Zen Tab"
+    },
+    "group-tabs": {
+      "suggested_key": {
+        "default": "MacCtrl+Shift+G"
+      },
+      "description": "Group Tab"
     }
   },
   "options_ui": {
