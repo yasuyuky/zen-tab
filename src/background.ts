@@ -99,3 +99,14 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     await handleDuplicateTabs(tab);
   }
 });
+
+browser.runtime.onMessage.addListener(
+  (message: any, _sender, _sendResponse) => {
+    if (message.action === "openZenTab") {
+      openZenTab();
+    } else if (message.action === "groupTabs") {
+      groupTabs();
+    }
+    return true;
+  }
+);
