@@ -22,7 +22,7 @@
     "@types/react-dom": "^19.1.7",
     "@types/styled-components": "^5.1.34",
     "@types/webextension-polyfill": "^0.12.3",
-    "ts-loader": "^9.5.0",
+    "ts-loader": "^9.5.4",
     "typescript": "^5.9.2",
     "web-ext": "^8.9.0",
     "webextension-polyfill": "^0.12.0",
