@@ -15,7 +15,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.6",
     "react-redux": "^9.3.0",
-    "styled-components": "^6.4.1"
+    "styled-components": "^6.4.2"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
