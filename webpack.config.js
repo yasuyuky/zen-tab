@@ -5,6 +5,7 @@ module.exports = {
     index: ["./src/page/index.tsx", "./src/page/index.ts"],
     background: "./src/background.ts",
     options: "./src/options/options.ts",
+    popup: "./src/popup.ts",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
