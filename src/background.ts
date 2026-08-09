@@ -35,6 +35,7 @@ async function groupTabs() {
 
   for (const tab of tabs) {
     if (tab.url) {
+      handleDuplicateTabs(tab);
       const groupKey = new URL(tab.url).hostname;
       if (!group0[groupKey]) {
         group0[groupKey] = [];
