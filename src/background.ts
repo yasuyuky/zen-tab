@@ -1,22 +1,37 @@
 import browser from "webextension-polyfill";
+import { getDuplicateTabIds } from "./duplicateTabs";
 
-async function findDuplicateTabs(tabUrl: string): Promise<browser.Tabs.Tab[]> {
-  const tabs = await browser.tabs.query({ url: tabUrl });
-  return tabs;
+let duplicateCleanup = Promise.resolve();
+
+function withDuplicateCleanupLock<T>(cleanup: () => Promise<T>): Promise<T> {
+  const result = duplicateCleanup.then(cleanup, cleanup);
+  duplicateCleanup = result.then(
+    () => undefined,
+    () => undefined
+  );
+  return result;
+}
+
+async function closeDuplicateTabs(
+  tabs: browser.Tabs.Tab[]
+): Promise<Set<number>> {
+  const duplicateIds = getDuplicateTabIds(tabs);
+  if (duplicateIds.length > 0) {
+    await browser.tabs.remove(duplicateIds);
+  }
+  return new Set(duplicateIds);
 }
 
 async function handleDuplicateTabs(tab: browser.Tabs.Tab) {
   if (!tab.url) return;
 
-  const duplicates = await findDuplicateTabs(tab.url);
-  if (duplicates.length > 1) {
-    // Keep the most recently activated tab and remove others
-    const tabsToClose = duplicates
-      .filter((t) => t.id !== tab.id)
-      .map((t) => t.id)
-      .filter((id): id is number => id !== undefined);
-
-    await browser.tabs.remove(tabsToClose);
+  try {
+    await withDuplicateCleanupLock(async () => {
+      const duplicates = await browser.tabs.query({ url: tab.url });
+      await closeDuplicateTabs(duplicates);
+    });
+  } catch (error) {
+    console.error("Failed to close duplicate tabs", error);
   }
 }
 
@@ -26,16 +41,21 @@ async function openZenTab() {
 }
 
 async function groupTabs() {
-  const tabs = (await browser.tabs.query({})).flatMap((tab) =>
-    tab.pinned ? [] : tab
-  );
+  const tabs = await withDuplicateCleanupLock(async () => {
+    const candidates = (await browser.tabs.query({})).flatMap((tab) =>
+      tab.pinned ? [] : tab
+    );
+    const duplicateIds = await closeDuplicateTabs(candidates);
+    return candidates.filter(
+      (tab) => tab.id === undefined || !duplicateIds.has(tab.id)
+    );
+  });
 
   (browser.tabs as any).ungroup(tabs.map((tab) => tab.id));
   const group0: { [key: string]: browser.Tabs.Tab[] } = {};
 
   for (const tab of tabs) {
     if (tab.url) {
-      handleDuplicateTabs(tab);
       const groupKey = new URL(tab.url).hostname;
       if (!group0[groupKey]) {
         group0[groupKey] = [];
