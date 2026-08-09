@@ -1,5 +1,10 @@
 import browser from "webextension-polyfill";
 import { getDuplicateTabIds } from "./duplicateTabs";
+import { createTabGroupPlans } from "./tabGroups";
+
+type TabsWithUngroup = typeof browser.tabs & {
+  ungroup?: (tabIds: number[]) => Promise<void>;
+};
 
 let duplicateCleanup = Promise.resolve();
 
@@ -41,51 +46,47 @@ async function openZenTab() {
 }
 
 async function groupTabs() {
-  const tabs = await withDuplicateCleanupLock(async () => {
-    const candidates = (await browser.tabs.query({})).flatMap((tab) =>
-      tab.pinned ? [] : tab
-    );
-    const duplicateIds = await closeDuplicateTabs(candidates);
-    return candidates.filter(
-      (tab) => tab.id === undefined || !duplicateIds.has(tab.id)
-    );
-  });
-
-  (browser.tabs as any).ungroup(tabs.map((tab) => tab.id));
-  const group0: { [key: string]: browser.Tabs.Tab[] } = {};
-
-  for (const tab of tabs) {
-    if (tab.url) {
-      const groupKey = new URL(tab.url).hostname;
-      if (!group0[groupKey]) {
-        group0[groupKey] = [];
-      }
-      group0[groupKey].push(tab);
-    }
+  const createGroup = browser.tabs.group?.bind(browser.tabs);
+  if (!createGroup) {
+    console.warn("Tab groups are not supported by this browser");
+    return;
   }
 
-  const group1: { [key: string]: browser.Tabs.Tab[] } = { others: [] };
-  for (const [key, value] of Object.entries(group0)) {
-    if (value.length > 1) {
-      group1[key] = value.sort((a, b) =>
-        (a.title || "").localeCompare(b.title || "")
+  try {
+    const tabs = await withDuplicateCleanupLock(async () => {
+      const candidates = (
+        await browser.tabs.query({ currentWindow: true })
+      ).filter((tab) => !tab.pinned);
+      const duplicateIds = await closeDuplicateTabs(candidates);
+      return candidates.filter(
+        (tab) => tab.id === undefined || !duplicateIds.has(tab.id)
       );
-    } else {
-      group1["others"].push(value[0]);
+    });
+
+    const tabIds = tabs.flatMap((tab) =>
+      tab.id === undefined ? [] : tab.id
+    );
+    if (tabIds.length === 0) return;
+
+    const ungroupTabs = (browser.tabs as TabsWithUngroup).ungroup?.bind(
+      browser.tabs
+    );
+    if (ungroupTabs) {
+      await ungroupTabs(tabIds);
     }
-  }
-  for (const [key, value] of Object.entries(group1)) {
-    if (browser.tabs.group) {
-      const groupId = await browser.tabs.group({
-        tabIds: value.map((tab) => tab.id || 0),
+
+    for (const plan of createTabGroupPlans(tabs)) {
+      const groupId = await createGroup({
+        tabIds: plan.tabIds,
       });
-      console.log(`Created group ${key} with ID ${groupId}`);
+      console.log(`Created group ${plan.title} with ID ${groupId}`);
       await browser.tabGroups?.update(groupId, {
-        title: key,
+        title: plan.title,
       });
     }
+  } catch (error) {
+    console.error("Failed to group tabs", error);
   }
-  return;
 }
 
 // Handle keyboard shortcut
