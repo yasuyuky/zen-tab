@@ -1,4 +1,4 @@
-import { ZenTabSettings, ThemeMode } from "../types";
+import { ZenTabSettings, ThemeMode } from "../settings";
 import { loadSettings } from "../utils";
 import browser from "webextension-polyfill";
 class OptionsManager {

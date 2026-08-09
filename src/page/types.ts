@@ -1,4 +1,4 @@
-import browser from "webextension-polyfill";
+import type browser from "webextension-polyfill";
 
 export type TabInfo = (browser.Tabs.Tab | browser.History.HistoryItem) & {
   id?: number | string;
@@ -22,12 +22,4 @@ export type SearchMode = "normal" | "pinned" | "audible" | "history";
 export interface Mode {
   id: SearchMode;
   label: string;
-}
-
-export interface ZenTabSettings {
-  themeMode: "light" | "dark" | "system";
-  showFavicon: boolean;
-  enableHistorySearch: boolean;
-  backgroundImage?: string;
-  accentColor: string;
 }
