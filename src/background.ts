@@ -98,12 +98,6 @@ browser.commands.onCommand.addListener((command) => {
   }
 });
 
-// Handle toolbar button click
-browser.browserAction.onClicked.addListener(() => {
-  groupTabs();
-  openZenTab();
-});
-
 // Keep the extension alive and initialize
 browser.runtime.onInstalled.addListener(() => {
   console.log("Zen Tab extension installed");
